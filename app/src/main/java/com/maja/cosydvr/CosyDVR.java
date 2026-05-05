@@ -1,7 +1,6 @@
 package com.maja.cosydvr;
-import com.maja.cosydvr.BackgroundVideoRecorder;
-import com.maja.cosydvr.CosyDVRPreferenceActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
@@ -9,7 +8,6 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Environment;
 //import android.os.SystemClock;
 import android.view.Display;
 import android.view.Gravity;
@@ -24,7 +22,6 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.graphics.Point;
 import android.os.IBinder;
-import java.io.File;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
@@ -37,11 +34,10 @@ public class CosyDVR extends Activity{
     Button favButton,recButton,flsButton,exiButton,focButton,nigButton;
     View mainView;
     boolean mBound = false;
-    boolean mayclick = false;
+    boolean mayClick = false;
     private int mWidth=1,mHeight=1;
-    long ExitPressTime = 0;
     private float mScaleFactor = 4.0f;
-    private String[] mFocusNames = {"I",
+    private final String[] mFocusNames = {"I",
 			 "V",
 			 "A",
 			 "M",
@@ -70,13 +66,13 @@ public class CosyDVR extends Activity{
 
       setContentView(R.layout.main);
 
-      favButton = (Button)findViewById(R.id.fav_button);
-      recButton = (Button)findViewById(R.id.rec_button);
-      focButton = (Button)findViewById(R.id.foc_button);
-      nigButton = (Button)findViewById(R.id.nig_button);
-      flsButton = (Button)findViewById(R.id.fls_button);
-      exiButton = (Button)findViewById(R.id.exi_button);
-      mainView = (View)findViewById(R.id.mainview);
+      favButton = findViewById(R.id.fav_button);
+      recButton = findViewById(R.id.rec_button);
+      nigButton = findViewById(R.id.nig_button);
+	  flsButton = findViewById(R.id.fls_button);
+	  exiButton = findViewById(R.id.exi_button);
+	  focButton = findViewById(R.id.foc_button);
+	  mainView = findViewById(R.id.mainview);
       
       favButton.setOnClickListener(favButtonOnClickListener);
       recButton.setOnClickListener(recButtonOnClickListener);
@@ -91,6 +87,7 @@ public class CosyDVR extends Activity{
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
       final ScaleGestureDetector mScaleDetector = new ScaleGestureDetector(this, new ScaleListener());
       mainView.setOnTouchListener(new OnTouchListener() {
+          @SuppressLint("ClickableViewAccessibility")
           @Override
           public boolean onTouch(View v, MotionEvent event) {
          	 mScaleDetector.onTouchEvent(event);
@@ -98,33 +95,32 @@ public class CosyDVR extends Activity{
          	 int action = event.getAction() & MotionEvent.ACTION_MASK;
          	 switch(action) {
          	 	case MotionEvent.ACTION_DOWN : {
-         	 		mayclick = true;	//first finger touch is like click
+         	 		mayClick = true;	//first finger touch is like click
          	 		break;
          	 	}
          	 	case MotionEvent.ACTION_POINTER_DOWN : {
-         	 		mayclick = false;	//second finger is not click
+         	 		mayClick = false;	//second finger is not click
          	 		break;
          	 	}
          	 	case MotionEvent.ACTION_UP : {
-         	 		if(mayclick) {		//first finger up. check if it was single one
+         	 		if(mayClick) {		//first finger up. check if it was single one
          	 			if(mBound) {
          	 				mService.autoFocus();
          	 			}
          	 		}
-     	 			mayclick = false;
+     	 			mayClick = false;
          	 	}  
          	 }
          	 return true;
           }
       });
-            updateinterface();
+            updateInterface();
   }
 
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
       super.onWindowFocusChanged(hasFocus);
-      if(hasFocus){
-		  //check permissions
+      if(hasFocus){//check permissions
 		  if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
 				  androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
 				  androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -135,7 +131,7 @@ public class CosyDVR extends Activity{
 			  }, 100);
 			  return;
 		  }
-          //aqcuire screen size 
+          //acquire screen size
           Display display = getWindowManager().getDefaultDisplay();
 		  Point size = new Point();
 		  display.getSize(size);
@@ -170,7 +166,7 @@ public class CosyDVR extends Activity{
 
   @Override
   public void onResume(){
-    	updateinterface(); //after preferences
+    	updateInterface(); //after preferences
 	  if(mBound) {
 		  mService.ChangeSurface(mWidth, mHeight);
 	  }
@@ -190,7 +186,8 @@ public void showHint(String text){
 	}
 }
 
-public void updateinterface(){
+@SuppressLint("SetTextI18n")
+public void updateInterface(){
 	SharedPreferences sharedPref = PreferenceManager
 			.getDefaultSharedPreferences(this);
 	boolean REVERSE_ORIENTATION = sharedPref.getBoolean("reverse_landscape", false);
@@ -211,6 +208,7 @@ public void updateinterface(){
   
  Button.OnClickListener favButtonOnClickListener
   = new Button.OnClickListener(){
+  @SuppressLint("SetTextI18n")
   @Override
   public void onClick(View v) {
    // TODO Auto-generated method stub
@@ -231,6 +229,7 @@ public void onClick(View v) {
 
 Button.OnClickListener focButtonOnClickListener
 = new Button.OnClickListener(){
+@SuppressLint("SetTextI18n")
 @Override
 public void onClick(View v) {
 	  if(mBound) {
@@ -283,16 +282,10 @@ public boolean onLongClick(View v) {
 }};
 
 Button.OnClickListener exiButtonOnClickListener
-= new Button.OnClickListener(){
-@Override
-public void onClick(View v) {
-	showHint(getString(R.string.longclick) + ": " + getString(R.string.exit));
-}};
+= v -> showHint(getString(R.string.longclick) + ": " + getString(R.string.exit));
 
 Button.OnLongClickListener exiButtonOnLongClickListener
-= new Button.OnLongClickListener(){
-@Override
-public boolean onLongClick(View v) {
+= v -> {
 	if(mBound) {
 		unbindService(CosyDVR.this.mConnection);
 		CosyDVR.this.mBound = false;
@@ -300,10 +293,10 @@ public boolean onLongClick(View v) {
 	stopService(new Intent(CosyDVR.this, BackgroundVideoRecorder.class));
 	CosyDVR.this.finish();
 	return true;
-}};
+};
 
 /** Defines callbacks for service binding, passed to bindService() */
-private ServiceConnection mConnection = new ServiceConnection() {
+private final ServiceConnection mConnection = new ServiceConnection() {
 
     @Override
     public void onServiceConnected(ComponentName className,
@@ -312,12 +305,6 @@ private ServiceConnection mConnection = new ServiceConnection() {
         BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
         mService = binder.getService();
         mBound = true;
-        /*if(!mService.isRecording()){
-       	 	//stopService(new Intent(CosyDVR.this, BackgroundVideoRecorder.class));
-       	 	recButton.setText(getString(R.string.rec));
-        }else{
-            recButton.setText(getString(R.string.stop));
-        }*/
         mService.ChangeSurface(mWidth, mHeight);
     }
 
@@ -328,13 +315,13 @@ private ServiceConnection mConnection = new ServiceConnection() {
     
 };
 
-private IntentFilter filter = new IntentFilter("com.maja.cosydvr.updateinterface");
+private final IntentFilter filter = new IntentFilter("com.maja.cosydvr.updateinterface");
 
-private BroadcastReceiver receiver = new BroadcastReceiver(){
+private final BroadcastReceiver receiver = new BroadcastReceiver(){
     
     @Override
     public void onReceive(Context c, Intent i) {
-    	updateinterface();
+    	updateInterface();
     }
 };
 }
