@@ -143,7 +143,7 @@ public class BackgroundVideoRecorder extends Service implements
 			}
 			/* every second update for debug purposes only
 			 * Intent intent = new Intent();
-			 * intent.setAction("es.esy.CosyDVR.updateinterface");
+			 * intent.setAction("com.maja.cosydvr.updateinterface");
 			 * sendBroadcast(intent);
 			 */
 			
@@ -291,8 +291,7 @@ public class BackgroundVideoRecorder extends Service implements
 	@Override
 	public void onCreate() {
 		// read first time-shared preferences
-		SharedPreferences sharedPref = PreferenceManager
-				.getDefaultSharedPreferences(this);
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		AUTOSTART = sharedPref.getBoolean("autostart_recording", false);
 		/*
 		 * MAX_VIDEO_BIT_RATE =
@@ -336,58 +335,66 @@ public class BackgroundVideoRecorder extends Service implements
 				.setContentIntent(pendingIntent)
 				.build();
 		startForeground(1, notification);
-		 
+
 		// Create new SurfaceView, set its size to 1x1, move it to the top left
 		// corner and set this service as a callback
 		windowManager = (WindowManager) this
 				.getSystemService(Context.WINDOW_SERVICE);
 		surfaceView = new SurfaceView(this);
+		int overlayType;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+		} else {
+			overlayType = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+		}
+
 		LayoutParams layoutParams = new WindowManager.LayoutParams(
-				// WindowManager.LayoutParams.WRAP_CONTENT,
-				// WindowManager.LayoutParams.WRAP_CONTENT,
-				1, 1, WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-				WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+				1, 1, overlayType,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
 				PixelFormat.TRANSLUCENT);
 
 		layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
-		windowManager.addView(surfaceView, layoutParams);
+		try {
+			windowManager.addView(surfaceView, layoutParams);
+		} catch (Exception e) {
+		}
 
 		mTextView = new TextView(this);
-		layoutParams = new WindowManager.LayoutParams(
+		LayoutParams textParams = new WindowManager.LayoutParams(
 				WindowManager.LayoutParams.WRAP_CONTENT,
 				WindowManager.LayoutParams.WRAP_CONTENT,
-				WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-				WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+				overlayType,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
 				PixelFormat.TRANSLUCENT);
-		layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
-		windowManager.addView(mTextView, layoutParams);
+		textParams.gravity = Gravity.LEFT | Gravity.TOP;
+		windowManager.addView(mTextView, textParams);
 		mTextView.setTextColor(Color.parseColor("#FFFFFF"));
 		mTextView.setShadowLayer(5, 0, 0, Color.parseColor("#000000"));
 		mTextView.setText("--");
 
 		mSpeedView = new TextView(this);
-		layoutParams = new WindowManager.LayoutParams(
+		LayoutParams speedParams = new WindowManager.LayoutParams(
 				WindowManager.LayoutParams.WRAP_CONTENT,
 				WindowManager.LayoutParams.WRAP_CONTENT,
-				WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-				WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+				overlayType,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
 				PixelFormat.TRANSLUCENT);
-		layoutParams.gravity = Gravity.RIGHT | Gravity.TOP;
-		windowManager.addView(mSpeedView, layoutParams);
+		speedParams.gravity = Gravity.RIGHT | Gravity.TOP;
+		windowManager.addView(mSpeedView, speedParams);
 		mSpeedView.setTextColor(Color.parseColor("#A0A0A0"));
 		mSpeedView.setShadowLayer(5, 0, 0, Color.parseColor("#000000"));
 		mSpeedView.setTextSize(56);
 		mSpeedView.setText("---");
 
 		mBatteryView = new TextView(this);
-		layoutParams = new WindowManager.LayoutParams(
+		LayoutParams batParams = new WindowManager.LayoutParams(
 				WindowManager.LayoutParams.WRAP_CONTENT,
 				WindowManager.LayoutParams.WRAP_CONTENT,
-				WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-				WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+				overlayType,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
 				PixelFormat.TRANSLUCENT);
-		layoutParams.gravity = Gravity.CENTER;
-		windowManager.addView(mBatteryView, layoutParams);
+		batParams.gravity = Gravity.CENTER;
+		windowManager.addView(mBatteryView, batParams);
 		mBatteryView.setTextColor(Color.parseColor("#FFFFFF"));
 		mBatteryView.setShadowLayer(5, 0, 0, Color.parseColor("#000000"));
 		mBatteryView.setTextSize(80);
@@ -473,7 +480,7 @@ public class BackgroundVideoRecorder extends Service implements
 
 	public void UpdateLayoutInterface() {
 		Intent intent = new Intent();
-		intent.setAction("es.esy.CosyDVR.updateinterface");
+		intent.setAction("com.maja.cosydvr.updateinterface");
 		sendBroadcast(intent); 
 	}
 	
@@ -808,11 +815,16 @@ public class BackgroundVideoRecorder extends Service implements
 		} else {
 			width = (int) (height * this.VIDEO_WIDTH / this.VIDEO_HEIGHT); //debug
 		}
+		int overlayType;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+		} else {
+			overlayType = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+		}
+
 		LayoutParams layoutParams = new WindowManager.LayoutParams(
-				// WindowManager.LayoutParams.WRAP_CONTENT,
-				// WindowManager.LayoutParams.WRAP_CONTENT,
-				width, height, WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-				WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+				width, height, overlayType,
+				LayoutParams.FLAG_NOT_FOCUSABLE | LayoutParams.FLAG_NOT_TOUCHABLE,
 				PixelFormat.TRANSLUCENT);
 		if (width == 1) {
 			layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
