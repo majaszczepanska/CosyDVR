@@ -11,6 +11,8 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import com.maja.cosydvr.StorageUtils;
+
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -23,7 +25,7 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
     }
 
-    public class MyPreferenceFragment extends PreferenceFragment
+    public static class MyPreferenceFragment extends PreferenceFragment
         implements OnSharedPreferenceChangeListener
     {
         @Override
@@ -31,10 +33,13 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
         {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
+
             ListPreference LP = (ListPreference) findPreference("sd_card_path");
             Context context = getActivity();
+
             StorageUtils stutils = new StorageUtils();
-            stutils.getStorageList(context);
+            ArrayList storageList = (ArrayList) stutils.getStorageList(context);
+
             CharSequence[] entries = new CharSequence[stutils.getStorageList(context).size()];
             CharSequence[] entryValues = new CharSequence[stutils.getStorageList(context).size()];
             for (int i = 0; i < stutils.getStorageList(context).size(); i++) {
@@ -43,14 +48,17 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
             }
             LP.setEntries(entries);
             LP.setEntryValues(entryValues);
-            SharedPreferences sharedPref = getPreferenceManager().getSharedPreferences();
+
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
             sharedPref.registerOnSharedPreferenceChangeListener(this);
+
             Map<String,?> keys = sharedPref.getAll();
             for(Map.Entry<String,?> entry : keys.entrySet()){
                 onSharedPreferenceChanged(sharedPref,entry.getKey());
             } 
         }
 
+        @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
             String key) {
             Preference pref = findPreference(key);
