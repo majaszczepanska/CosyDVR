@@ -140,9 +140,9 @@ public class CosyDVR extends Activity{
 			}
 
 			if (allGranted) {
-				setupServiceAndSize(); // Użytkownik się zgodził -> odpalamy kamerę!
+				setupServiceAndSize(); //open camera, all permissions on
 			} else {
-				showHint("Brak wymaganych uprawnień!");
+				showHint("Permission denied");
 			}
 		}
 	}
@@ -152,10 +152,10 @@ public class CosyDVR extends Activity{
 		if (requestCode == 1234) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 				if (android.provider.Settings.canDrawOverlays(this)) {
-					Log.i("CosyDVR", "Zgoda na nakładki uzyskana, odpalam serwis!");
-					setupServiceAndSize(); // Odpalamy kamerę po powrocie!
+					Log.i("CosyDVR", "Permission accessed");
+					setupServiceAndSize(); // open camera
 				} else {
-					showHint("Bez nakładek aplikacja nie zadziała!");
+					showHint("App no responding without access");
 				}
 			}
 		}
