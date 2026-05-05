@@ -28,6 +28,8 @@ import java.io.File;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import androidx.core.content.ContextCompat;
+
 
 public class CosyDVR extends Activity{
 
@@ -96,7 +98,7 @@ public class CosyDVR extends Activity{
          	 int action = event.getAction() & MotionEvent.ACTION_MASK;
          	 switch(action) {
          	 	case MotionEvent.ACTION_DOWN : {
-         	 		mayclick = true;	//first finger touch is like click 
+         	 		mayclick = true;	//first finger touch is like click
          	 		break;
          	 	}
          	 	case MotionEvent.ACTION_POINTER_DOWN : {
@@ -122,21 +124,28 @@ public class CosyDVR extends Activity{
   public void onWindowFocusChanged(boolean hasFocus) {
       super.onWindowFocusChanged(hasFocus);
       if(hasFocus){
+		  //check permissions
+		  if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
+				  androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
+				  androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+			  androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{
+					  android.Manifest.permission.CAMERA,
+					  android.Manifest.permission.RECORD_AUDIO,
+					  android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+			  }, 100);
+			  return;
+		  }
           //aqcuire screen size 
           Display display = getWindowManager().getDefaultDisplay();
-//          if (Build.VERSION.SDK_INT >= 13){
-	          Point size = new Point();
-	          display.getSize(size);
-	          mWidth = size.x;
-	          mHeight = size.y - favButton.getHeight();
-//          }else {
-//        	  mWidth = display.getWidth();
-//        	  mHeight = display.getHeight();
-//          }
+		  Point size = new Point();
+		  display.getSize(size);
+		  mWidth = size.x;
+		  mHeight = size.y - favButton.getHeight();
 
-          Intent intent = new Intent(/*CosyDVR.this*/getApplicationContext(), BackgroundVideoRecorder.class);
+          Intent intent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          startService(intent);
+          //startService(intent);
+		  androidx.core.content.ContextCompat.startForegroundService(this, intent);
           bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
       }
    }
@@ -166,7 +175,7 @@ public class CosyDVR extends Activity{
 		  mService.ChangeSurface(mWidth, mHeight);
 	  }
 	  super.onResume();
-	  this.registerReceiver(receiver,filter);
+      ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
   }
 
 public void showHint(String text){
@@ -319,7 +328,7 @@ private ServiceConnection mConnection = new ServiceConnection() {
     
 };
 
-private IntentFilter filter = new IntentFilter("es.esy.CosyDVR.updateinterface");
+private IntentFilter filter = new IntentFilter("com.maja.cosydvr.updateinterface");
 
 private BroadcastReceiver receiver = new BroadcastReceiver(){
     
