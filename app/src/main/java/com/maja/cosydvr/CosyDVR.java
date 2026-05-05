@@ -1,5 +1,6 @@
 package com.maja.cosydvr;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 //import android.os.SystemClock;
 import android.view.Display;
@@ -121,29 +123,46 @@ public class CosyDVR extends Activity{
   public void onWindowFocusChanged(boolean hasFocus) {
       super.onWindowFocusChanged(hasFocus);
       if(hasFocus){//check permissions
-		  if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
-				  androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
-				  androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-			  androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{
-					  android.Manifest.permission.CAMERA,
-					  android.Manifest.permission.RECORD_AUDIO,
-					  android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-			  }, 100);
-			  return;
+		  if (checkAndRequestPermissions()) {
+			  setupServiceAndSize();
 		  }
-          //acquire screen size
-          Display display = getWindowManager().getDefaultDisplay();
-		  Point size = new Point();
-		  display.getSize(size);
-		  mWidth = size.x;
-		  mHeight = size.y - favButton.getHeight();
-
-          Intent intent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
-          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          //startService(intent);
-		  androidx.core.content.ContextCompat.startForegroundService(this, intent);
-          bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
       }
+   }
+
+   private boolean checkAndRequestPermissions() {
+	   String[] permissions = {
+			   Manifest.permission.CAMERA,
+			   android.Manifest.permission.RECORD_AUDIO,
+			   android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+			   android.Manifest.permission.ACCESS_FINE_LOCATION
+	   };
+	   boolean allGranted = true;
+	   for (String p : permissions) {
+		   if(androidx.core.content.ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+			   allGranted = false;
+			   break;
+		   }
+	   }
+	   if (!allGranted) {
+		   androidx.core.app.ActivityCompat.requestPermissions(this, permissions, 100);
+		   return false;
+	   }
+	   return true;
+   }
+
+   private void setupServiceAndSize() {
+	   //acquire screen size
+	   Display display = getWindowManager().getDefaultDisplay();
+	   Point size = new Point();
+	   display.getSize(size);
+	   mWidth = size.x;
+	   mHeight = size.y - favButton.getHeight();
+
+	   Intent intent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
+	   intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	   //startService(intent);
+	   androidx.core.content.ContextCompat.startForegroundService(this, intent);
+	   bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
    }
 
   @Override  
@@ -223,8 +242,12 @@ public void updateInterface(){
 
 @Override
 public void onClick(View v) {
-	showHint(getString(R.string.longclick) + ": " + getString(R.string.preferences));
-	mService.RestartRecording(); //start/restart
+	if (mBound && mService != null) {
+		showHint(getString(R.string.longclick) + ": " + getString(R.string.preferences));
+		mService.RestartRecording();
+	} else {
+		showHint("Wait, connecting with camera..");
+	}
 }};
 
 Button.OnClickListener focButtonOnClickListener
