@@ -9,8 +9,10 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 //import android.os.SystemClock;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -116,9 +118,49 @@ public class CosyDVR extends Activity{
          	 return true;
           }
       });
-            updateInterface();
+	  updateInterface();
+	  mainView.post(new Runnable() {
+		  @Override
+		  public void run() {
+			  if (checkAndRequestPermissions()) {
+				  setupServiceAndSize();
+			  }
+		  }
+	  });
   }
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		if (requestCode == 100) {
+			boolean allGranted = true;
+			for (int result : grantResults) {
+				if (result != PackageManager.PERMISSION_GRANTED) {
+					allGranted = false;
+					break;
+				}
+			}
 
+			if (allGranted) {
+				setupServiceAndSize(); // Użytkownik się zgodził -> odpalamy kamerę!
+			} else {
+				showHint("Brak wymaganych uprawnień!");
+			}
+		}
+	}
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == 1234) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				if (android.provider.Settings.canDrawOverlays(this)) {
+					Log.i("CosyDVR", "Zgoda na nakładki uzyskana, odpalam serwis!");
+					setupServiceAndSize(); // Odpalamy kamerę po powrocie!
+				} else {
+					showHint("Bez nakładek aplikacja nie zadziała!");
+				}
+			}
+		}
+	}
+/*
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
       super.onWindowFocusChanged(hasFocus);
@@ -127,15 +169,23 @@ public class CosyDVR extends Activity{
 			  setupServiceAndSize();
 		  }
       }
-   }
+   }*/
 
    private boolean checkAndRequestPermissions() {
-	   String[] permissions = {
-			   Manifest.permission.CAMERA,
-			   android.Manifest.permission.RECORD_AUDIO,
-			   android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-			   android.Manifest.permission.ACCESS_FINE_LOCATION
-	   };
+	   java.util.ArrayList<String> permsList = new java.util.ArrayList<>();
+	   permsList.add(Manifest.permission.CAMERA);
+	   permsList.add(android.Manifest.permission.RECORD_AUDIO);
+	   permsList.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+	   if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P) {
+		   permsList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+	   }
+
+	   if (android.os.Build.VERSION.SDK_INT >= 33) {
+		   permsList.add(android.Manifest.permission.POST_NOTIFICATIONS);
+	   }
+
+	   String[] permissions = permsList.toArray(new String[0]);
 	   boolean allGranted = true;
 	   for (String p : permissions) {
 		   if(androidx.core.content.ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
@@ -151,7 +201,14 @@ public class CosyDVR extends Activity{
    }
 
    private void setupServiceAndSize() {
-	   //acquire screen size
+       if (!android.provider.Settings.canDrawOverlays(this)) {
+           showHint("Allow to display over other apps");
+           Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                   android.net.Uri.parse("package:" + getPackageName()));
+           startActivityForResult(intent, 1234);
+           return; //stop and go to settings
+       }
+       //acquire screen size
 	   Display display = getWindowManager().getDefaultDisplay();
 	   Point size = new Point();
 	   display.getSize(size);
@@ -194,14 +251,15 @@ public class CosyDVR extends Activity{
   }
 
 public void showHint(String text){
-	SharedPreferences sharedPref = PreferenceManager
-			.getDefaultSharedPreferences(this);
-	boolean HIDE_HINTS = sharedPref.getBoolean("hide_hints", false);
-	if(!HIDE_HINTS) {
-		Toast infotoast = Toast.makeText(CosyDVR.this, text, Toast.LENGTH_LONG);
-		infotoast.setGravity(Gravity.BOTTOM/* | Gravity.FILL_HORIZONTAL*/,0,0);
-		infotoast.setMargin(0,0);
-		infotoast.show();
+	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+	if (!sharedPref.getBoolean("hide_hints", false)) {
+		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+	//boolean HIDE_HINTS = sharedPref.getBoolean("hide_hints", false);
+	//if(!HIDE_HINTS) {
+		//Toast infotoast = Toast.makeText(CosyDVR.this, text, Toast.LENGTH_LONG);
+		//infotoast.setGravity(Gravity.BOTTOM/* | Gravity.FILL_HORIZONTAL*/,0,0);
+		//infotoast.setMargin(0,0);
+		//infotoast.show();
 	}
 }
 
@@ -287,10 +345,13 @@ Button.OnLongClickListener recButtonOnLongClickListener
 @Override
 public boolean onLongClick(View v) {
 // TODO Auto-generated method stub
-	  mService.ChangeSurface(1, 1);
-      Intent myIntent = new Intent(getApplicationContext(), CosyDVRPreferenceActivity.class);
-      startActivity(myIntent);
-	  //mService.ChangeSurface(mWidth, mHeight);	//size will be returned with app focus
+	if (mBound && mService != null) {
+		mService.ChangeSurface(1, 1);
+		Intent myIntent = new Intent(getApplicationContext(), CosyDVRPreferenceActivity.class);
+		startActivity(myIntent);
+	} else {
+		showHint("Wait, camera loading...");
+	}
 	return true;
 }};
 
@@ -322,9 +383,9 @@ Button.OnLongClickListener exiButtonOnLongClickListener
 private final ServiceConnection mConnection = new ServiceConnection() {
 
     @Override
-    public void onServiceConnected(ComponentName className,
-            IBinder service) {
+    public void onServiceConnected(ComponentName className, IBinder service) {
         // We've bound to LocalService, cast the IBinder and get LocalService instance
+		Log.d("CosyDVR_DEBUG", "HURA! Połączono z usługą.");
         BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
         mService = binder.getService();
         mBound = true;
@@ -333,9 +394,10 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 
     @Override
     public void onServiceDisconnected(ComponentName arg0) {
+		Log.d("CosyDVR_DEBUG", "zleee");
         mBound = false;
     }
-    
+
 };
 
 private final IntentFilter filter = new IntentFilter("com.maja.cosydvr.updateinterface");
