@@ -519,15 +519,11 @@ public class BackgroundVideoRecorder extends Service implements
 				"max_temp_folder_size", "600000"));
 		MIN_FREE_SPACE_KB = Long.parseLong(sharedPref.getString(
 				"min_free_space", "600000"));
-		if (Build.VERSION.SDK_INT >= 21) {
-			SD_CARD_PATH = sharedPref.getString("sd_card_path"
-				,(getExternalMediaDirs())[0].getAbsolutePath());
-		} else if(Build.VERSION.SDK_INT >= 19) {
-			SD_CARD_PATH = sharedPref.getString("sd_card_path"
-				,(getExternalFilesDirs(""))[0].getAbsolutePath());
+		File externalDir = getExternalFilesDir(null);
+		if (externalDir != null) {
+			SD_CARD_PATH = sharedPref.getString("sd_card_path", externalDir.getAbsolutePath());
 		} else {
-			SD_CARD_PATH = sharedPref.getString("sd_card_path", Environment
-				.getExternalStorageDirectory().getAbsolutePath()) + "/CosyDVR";
+			SD_CARD_PATH = sharedPref.getString("sd_card_path", getFilesDir().getAbsolutePath());
 		}
 		// create temp and fav folders
 		File mFolder = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER); //"/CosyDVR/temp/");
