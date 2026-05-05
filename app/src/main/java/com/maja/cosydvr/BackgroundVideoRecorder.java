@@ -75,7 +75,7 @@ public class BackgroundVideoRecorder extends Service implements
 	//~ public String BASE_FOLDER = "/Android/data/es.esy.CosyDVR/files"; //possible fix for KitKat
 	public String FAV_FOLDER = "/fav/";
 	public String TEMP_FOLDER = "/temp/";
-/*for KitKat we can use something like:
+/*for KitKat, we can use something like:
 * final File[] dirs = context.getExternalFilesDirs(null); //null means default type
 * //find a dir that has most of the space and save using StatFs
 */
@@ -136,6 +136,7 @@ public class BackgroundVideoRecorder extends Service implements
 
 	// some troubles with video files @SuppressLint("HandlerLeak")
 	private final class HandlerExtension extends Handler {
+		@android.annotation.SuppressLint("MissingPermission")
 		public void handleMessage(Message msg) {
 			if (!isrecording) {
 				return;
@@ -289,7 +290,7 @@ public class BackgroundVideoRecorder extends Service implements
 
 	@Override
 	public void onCreate() {
-		// read first time shared preferences
+		// read first time-shared preferences
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		AUTOSTART = sharedPref.getBoolean("autostart_recording", false);
@@ -312,13 +313,28 @@ public class BackgroundVideoRecorder extends Service implements
 		// Start foreground service to avoid unexpected kill
 
 		Intent myIntent = new Intent(this, CosyDVR.class);
-		PendingIntent pendingIntent = PendingIntent.getActivity( this, 0,
-				myIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
-		  
-		Notification notification = new Notification.Builder(this)
-				.setContentTitle("CosyDVR Background Recorder Service")
-				.setContentText("") .setSmallIcon(R.drawable.cosydvricon)
-				.setContentIntent(pendingIntent) .build(); 
+		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        int pendingFlags = PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, myIntent, pendingFlags);
+
+		//notification channel
+		String channelId = "cosydvr_background_channel";
+		android.app.NotificationChannel channel = new android.app.NotificationChannel(
+				channelId,
+				"CosyDVR Recording",
+				android.app.NotificationManager.IMPORTANCE_LOW
+		);
+		android.app.NotificationManager manager = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		if (manager != null) {
+			manager.createNotificationChannel(channel);
+		}
+
+		Notification notification = new Notification.Builder(this, channelId)
+				.setContentTitle("CosyDVR")
+				.setContentText(" Background Recorder Service")
+				.setSmallIcon(R.drawable.cosydvricon)
+				.setContentIntent(pendingIntent)
+				.build();
 		startForeground(1, notification);
 		 
 		// Create new SurfaceView, set its size to 1x1, move it to the top left
@@ -380,7 +396,7 @@ public class BackgroundVideoRecorder extends Service implements
 		surfaceView.getHolder().addCallback(this);
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-				"CosyDVRWakeLock");
+				"com.maja.cosydvr:CosyDVRWakeLock");
 
 		mHandler = new HandlerExtension();
 
@@ -861,6 +877,7 @@ public class BackgroundVideoRecorder extends Service implements
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 	}
 
+	@android.annotation.SuppressLint("MissingPermission")
 	private void startGps() {
                 if (!USEGPS) return;
 		if (mLocationManager == null)
@@ -869,7 +886,7 @@ public class BackgroundVideoRecorder extends Service implements
 			try {
 				mLocationManager.requestLocationUpdates(
 						LocationManager.GPS_PROVIDER, 250 /* ms */, 0 /* m */,
-						(LocationListener) this); // mintime,mindistance
+						(LocationListener) this); // minTime,minDistance
 				// if ( !mLocationManager.isProviderEnabled(
 				// LocationManager.GPS_PROVIDER ) )
 				// Toast.makeText(getApplicationContext(),
@@ -891,9 +908,9 @@ public class BackgroundVideoRecorder extends Service implements
 	private int getBatteryLevel(Context context) {
 		int batteryLevel = 0;
 	    try {
-	        IntentFilter ifilter = new IntentFilter(
+	        IntentFilter iFilter = new IntentFilter(
 	                Intent.ACTION_BATTERY_CHANGED);
-	        Intent batteryStatus = context.registerReceiver(null, ifilter);
+	        Intent batteryStatus = context.registerReceiver(null, iFilter, Context.RECEIVER_NOT_EXPORTED);
 	        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 	        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 	        int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
