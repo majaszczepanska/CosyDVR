@@ -806,11 +806,19 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void ChangeSurface(int width, int height) {
-		if (this.VIDEO_WIDTH / this.VIDEO_HEIGHT > width / height) {
-			height = (int) (width * this.VIDEO_HEIGHT / this.VIDEO_WIDTH);
-		} else {
-			width = (int) (height * this.VIDEO_WIDTH / this.VIDEO_HEIGHT); //debug
-		}
+		/*
+		int finalWidth = width;
+		int finalHeight = height;
+		if (width > 1 && height > 1) {
+			float videoRatio = (float) this.VIDEO_WIDTH / this.VIDEO_HEIGHT;
+			float screenRatio = (float) width / height;
+
+			if (videoRatio > screenRatio) {
+				finalHeight = (int) (width / videoRatio);
+			} else {
+				finalWidth = (int) (height * videoRatio);
+			}
+		}*/
 		int overlayType;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -820,7 +828,7 @@ public class BackgroundVideoRecorder extends Service implements
 
 		LayoutParams layoutParams = new WindowManager.LayoutParams(
 				width, height, overlayType,
-				LayoutParams.FLAG_NOT_FOCUSABLE | LayoutParams.FLAG_NOT_TOUCHABLE,
+				LayoutParams.FLAG_NOT_FOCUSABLE | LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
 				PixelFormat.TRANSLUCENT);
 		if (width == 1) {
 			layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
