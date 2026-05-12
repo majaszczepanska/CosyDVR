@@ -401,7 +401,7 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 
 	@Override
 	public void onServiceConnected(ComponentName className, IBinder service) {
-		Log.d("CosyDVR_DEBUG", "HURA! Połączono z usługą.");
+		Log.d("CosyDVR_DEBUG", "Connected to Background Recorder Service.");
 		BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
 		mService = binder.getService();
 		mBound = true;
@@ -421,7 +421,7 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 
     @Override
     public void onServiceDisconnected(ComponentName arg0) {
-		Log.d("CosyDVR_DEBUG", "zleee");
+		Log.d("CosyDVR_DEBUG", "Service disconnected.");
         mBound = false;
     }
 
