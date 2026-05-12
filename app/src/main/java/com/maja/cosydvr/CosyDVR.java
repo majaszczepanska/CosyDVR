@@ -77,7 +77,7 @@ public class CosyDVR extends Activity{
 	  exiButton = findViewById(R.id.exi_button);
 	  focButton = findViewById(R.id.foc_button);
 	  mainView = findViewById(R.id.mainview);
-      
+
       favButton.setOnClickListener(favButtonOnClickListener);
       recButton.setOnClickListener(recButtonOnClickListener);
       focButton.setOnClickListener(focButtonOnClickListener);
@@ -113,7 +113,7 @@ public class CosyDVR extends Activity{
          	 			}
          	 		}
      	 			mayClick = false;
-         	 	}  
+         	 	}
          	 }
          	 return true;
           }
@@ -208,13 +208,20 @@ public class CosyDVR extends Activity{
            startActivityForResult(intent, 1234);
            return; //stop and go to settings
        }
+	   if (mainView != null) {
+		   mainView.setBackgroundColor(android.graphics.Color.BLACK);
+	   }
+
        //acquire screen size
 	   Display display = getWindowManager().getDefaultDisplay();
 	   Point size = new Point();
-	   display.getSize(size);
+	   display.getRealSize(size);
 	   mWidth = size.x;
-	   mHeight = size.y - favButton.getHeight();
-
+	   if (favButton != null && favButton.getHeight() > 0) {
+		   mHeight = size.y - favButton.getHeight();
+	   } else {
+		   mHeight = size.y - 150; // Zabezpieczenie na wypadek, gdyby przycisk jeszcze się nie narysował
+	   }
 	   Intent intent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
 	   intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	   //startService(intent);
@@ -222,7 +229,7 @@ public class CosyDVR extends Activity{
 	   bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
    }
 
-  @Override  
+  @Override
   public void onDestroy(){
 	  if(mBound) {
 		  unbindService(mConnection);
@@ -230,7 +237,7 @@ public class CosyDVR extends Activity{
 	  }
 	  super.onDestroy();
   }
-  
+
   @Override
   public void onPause(){
 	  if(mBound) {
@@ -240,15 +247,25 @@ public class CosyDVR extends Activity{
 	  this.unregisterReceiver(receiver);
   }
 
-  @Override
-  public void onResume(){
-    	updateInterface(); //after preferences
-	  if(mBound) {
-		  mService.ChangeSurface(mWidth, mHeight);
-	  }
-	  super.onResume();
-      ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
-  }
+	@Override
+	public void onResume(){
+		updateInterface(); //after preferences
+		if(mBound) {
+			mainView.post(new Runnable() {
+				@Override
+				public void run() {
+					mWidth = mainView.getWidth();
+					mHeight = mainView.getHeight();
+
+					if (mWidth > 0 && mHeight > 0) {
+						mService.ChangeSurface(mWidth, mHeight);
+					}
+				}
+			});
+		}
+		super.onResume();
+		ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+	}
 
 public void showHint(String text){
 	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -282,7 +299,7 @@ public void updateInterface(){
 		}
 	}
 }
-  
+
  Button.OnClickListener favButtonOnClickListener
   = new Button.OnClickListener(){
   @SuppressLint("SetTextI18n")
@@ -382,15 +399,25 @@ Button.OnLongClickListener exiButtonOnLongClickListener
 /** Defines callbacks for service binding, passed to bindService() */
 private final ServiceConnection mConnection = new ServiceConnection() {
 
-    @Override
-    public void onServiceConnected(ComponentName className, IBinder service) {
-        // We've bound to LocalService, cast the IBinder and get LocalService instance
+	@Override
+	public void onServiceConnected(ComponentName className, IBinder service) {
 		Log.d("CosyDVR_DEBUG", "HURA! Połączono z usługą.");
-        BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
-        mService = binder.getService();
-        mBound = true;
-        mService.ChangeSurface(mWidth, mHeight);
-    }
+		BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
+		mService = binder.getService();
+		mBound = true;
+
+		mainView.post(new Runnable() {
+			@Override
+			public void run() {
+				mWidth = mainView.getWidth();
+				mHeight = mainView.getHeight();
+
+				if (mWidth > 0 && mHeight > 0) {
+					mService.ChangeSurface(mWidth, mHeight);
+				}
+			}
+		});
+	}
 
     @Override
     public void onServiceDisconnected(ComponentName arg0) {
@@ -403,7 +430,7 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 private final IntentFilter filter = new IntentFilter("com.maja.cosydvr.updateinterface");
 
 private final BroadcastReceiver receiver = new BroadcastReceiver(){
-    
+
     @Override
     public void onReceive(Context c, Intent i) {
     	updateInterface();
