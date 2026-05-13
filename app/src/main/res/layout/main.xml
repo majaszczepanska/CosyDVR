@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="#673AB7"
-        android:weightSum="4">
+        android:weightSum="5">
 
         <Button
             android:id="@+id/btn_lock"

@@ -406,6 +406,15 @@ public class BackgroundVideoRecorder extends Service implements
 
 		mHandler = new HandlerExtension();
 
+		try {
+			camera = Camera.open();
+			camera.setDisplayOrientation(ORIENTATION_ANGLE);
+			camera.setPreviewDisplay(surfaceView.getHolder());
+			camera.startPreview(); // To da Ci podgląd, gdy jeszcze nie nagrywasz
+		} catch (Exception e) {
+			Log.e("CosyDVR", "Failed to start live preview");
+		}
+
 		startGps();
 
 	}
@@ -469,10 +478,10 @@ public class BackgroundVideoRecorder extends Service implements
 				favfile = new File(SD_CARD_PATH + BASE_FOLDER + FAV_FOLDER // "/CosyDVR/fav/" 
 						+ currentfile + GPX_FILE_EXT);
 				tmpfile.renameTo(favfile);
-				if (isfavorite == 2) {
-					isfavorite = 0;
-				}
+
+				isfavorite = 0;
 			}
+			isfavorite = 0;
 			isrecording = false;
 		}
 	}
@@ -590,6 +599,16 @@ public class BackgroundVideoRecorder extends Service implements
 	private void Stop() {
 		if (isrecording && mediaRecorder != null) {
 			mediaRecorder.stop();
+			mediaRecorder.reset();
+			mediaRecorder.release();
+			mediaRecorder = null;
+
+			try {
+				camera.reconnect();
+				camera.startPreview();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
