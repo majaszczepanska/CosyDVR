@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CosyDVR_new"
+rootProject.name = "CosyDVR_modern"
 include(":app")
  
