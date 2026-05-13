@@ -36,7 +36,7 @@ import com.ayamsz.cosydvr.R;
 public class CosyDVR extends Activity{
 
     BackgroundVideoRecorder mService;
-	Button btnRecord, btnLock, btnGallery, btnSettings;
+	Button btnRecord, btnLock, btnGallery, btnSettings, btnExit;
     View mainView;
     boolean mBound = false;
     boolean mayClick = false;
@@ -77,6 +77,7 @@ public class CosyDVR extends Activity{
 	  btnLock = findViewById(R.id.btn_lock);
 	  btnGallery = findViewById(R.id.btn_gallery);
 	  btnSettings = findViewById(R.id.btn_settings);
+	  btnExit = findViewById(R.id.btn_exit);
 
 
 	  btnRecord.setOnClickListener(v -> {
@@ -117,6 +118,19 @@ public class CosyDVR extends Activity{
 		  } else {
 			  showHint("Wait, camera loading...");
 		  }
+	  });
+
+	  btnExit.setOnClickListener(v -> {
+		  if(mBound && mService != null) {
+			  mService.StopRecording();
+			  unbindService(mConnection);
+			  mBound = false;
+		  }
+		  stopService(new Intent(CosyDVR.this, BackgroundVideoRecorder.class));
+
+		  finishAndRemoveTask();
+
+		  System.exit(0);
 	  });
 
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -259,6 +273,17 @@ public class CosyDVR extends Activity{
 	   androidx.core.content.ContextCompat.startForegroundService(this, intent);
 	   bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
    }
+	@Override
+	public void onBackPressed() {
+		if(mBound) {
+			mService.StopRecording();
+			unbindService(mConnection);
+			mBound = false;
+		}
+		stopService(new Intent(this, BackgroundVideoRecorder.class));
+		finish();
+		super.onBackPressed();
+	}
 
   @Override
   public void onDestroy(){
@@ -348,6 +373,7 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 		BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
 		mService = binder.getService();
 		mBound = true;
+		updateInterface();
 
 		mainView.post(new Runnable() {
 			@Override

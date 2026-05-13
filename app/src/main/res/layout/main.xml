@@ -54,6 +54,15 @@
             android:textColor="#FFFFFF"
             android:background="?android:attr/selectableItemBackground" />
 
+        <Button
+            android:id="@+id/btn_exit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="EXIT"
+            android:textColor="#FFFFFF"
+            android:background="?android:attr/selectableItemBackground" />
+
     </LinearLayout>
 
 </LinearLayout>
