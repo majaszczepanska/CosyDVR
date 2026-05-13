@@ -1,4 +1,4 @@
-package com.maja.cosydvr;
+package com.ayamsz.cosydvr;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -14,7 +14,6 @@ import android.os.Bundle;
 //import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -30,6 +29,8 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import androidx.core.content.ContextCompat;
+
+import com.ayamsz.cosydvr.R;
 
 
 public class CosyDVR extends Activity{

@@ -1,4 +1,4 @@
-package com.maja.cosydvr;
+package com.ayamsz.cosydvr;
 
 import org.junit.Test;
 

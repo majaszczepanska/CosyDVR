@@ -1,4 +1,4 @@
-package com.maja.cosydvr;
+package com.ayamsz.cosydvr;
 
 import android.os.Bundle;
 import android.content.Context;
@@ -10,11 +10,9 @@ import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import com.maja.cosydvr.StorageUtils;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public class CosyDVRPreferenceActivity extends PreferenceActivity
 {

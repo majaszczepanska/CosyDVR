@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.maja.cosydvr"
+    namespace = "com.ayamsz.cosydvr"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.maja.cosydvr"
+        applicationId = "com.ayamsz.cosydvr"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

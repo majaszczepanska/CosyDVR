@@ -1,5 +1,5 @@
 /*Got from http://stackoverflow.com/questions/5694933/find-an-external-sd-card-location*/
-package com.maja.cosydvr;
+package com.ayamsz.cosydvr;
 
 import android.content.Context;
 import java.io.FileReader;
@@ -14,7 +14,6 @@ import android.os.Environment;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
-import android.util.Log;
 
 
 public class StorageUtils {

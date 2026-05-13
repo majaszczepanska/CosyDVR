@@ -1,4 +1,4 @@
-package com.maja.cosydvr;
+package com.ayamsz.cosydvr;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -24,7 +24,6 @@ import android.location.LocationManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.media.AudioManager;
-import android.os.Environment;
 import android.text.format.DateFormat;
 import android.os.Build;
 import android.os.BatteryManager;
