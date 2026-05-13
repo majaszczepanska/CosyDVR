@@ -36,7 +36,7 @@ import com.ayamsz.cosydvr.R;
 public class CosyDVR extends Activity{
 
     BackgroundVideoRecorder mService;
-    Button favButton,recButton,flsButton,exiButton,focButton,nigButton;
+	Button btnRecord, btnLock, btnGallery, btnSettings;
     View mainView;
     boolean mBound = false;
     boolean mayClick = false;
@@ -70,24 +70,54 @@ public class CosyDVR extends Activity{
       super.onCreate(savedInstanceState);
 
       setContentView(R.layout.main);
-
-      favButton = findViewById(R.id.fav_button);
-      recButton = findViewById(R.id.rec_button);
-      nigButton = findViewById(R.id.nig_button);
-	  flsButton = findViewById(R.id.fls_button);
-	  exiButton = findViewById(R.id.exi_button);
-	  focButton = findViewById(R.id.foc_button);
 	  mainView = findViewById(R.id.mainview);
 
-      favButton.setOnClickListener(favButtonOnClickListener);
-      recButton.setOnClickListener(recButtonOnClickListener);
-      focButton.setOnClickListener(focButtonOnClickListener);
-      nigButton.setOnClickListener(nigButtonOnClickListener);
-      flsButton.setOnClickListener(flsButtonOnClickListener);
-      exiButton.setOnClickListener(exiButtonOnClickListener);
-      exiButton.setOnLongClickListener(exiButtonOnLongClickListener);
-      recButton.setOnLongClickListener(recButtonOnLongClickListener);
-      nigButton.setOnLongClickListener(nigButtonOnLongClickListener);
+
+	  btnRecord = findViewById(R.id.btn_record);
+	  btnLock = findViewById(R.id.btn_lock);
+	  btnGallery = findViewById(R.id.btn_gallery);
+	  btnSettings = findViewById(R.id.btn_settings);
+
+
+	  btnRecord.setOnClickListener(v -> {
+		  if (mBound && mService != null) {
+			  if (mService.isRecording()) {
+				  mService.StopRecording();
+				  showHint("Recording Stopped");
+			  } else {
+				  mService.StartRecording();
+				  showHint("Recording Started");
+			  }
+			  updateInterface();
+		  } else {
+			  showHint("Wait, connecting with camera...");
+		  }
+	  });
+
+
+	  btnLock.setOnClickListener(v -> {
+		  if(mBound) {
+			  mService.toggleFavorite();
+			  updateInterface();
+		  }
+	  });
+
+
+	  btnGallery.setOnClickListener(v -> {
+		  showHint("Opening Gallery...");
+
+	  });
+
+
+	  btnSettings.setOnClickListener(v -> {
+		  if (mBound && mService != null) {
+			  mService.ChangeSurface(1, 1);
+			  Intent myIntent = new Intent(getApplicationContext(), CosyDVRPreferenceActivity.class);
+			  startActivity(myIntent);
+		  } else {
+			  showHint("Wait, camera loading...");
+		  }
+	  });
 
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
       final ScaleGestureDetector mScaleDetector = new ScaleGestureDetector(this, new ScaleListener());
@@ -218,8 +248,8 @@ public class CosyDVR extends Activity{
 	   Point size = new Point();
 	   display.getRealSize(size);
 	   mWidth = size.x;
-	   if (favButton != null && favButton.getHeight() > 0) {
-		   mHeight = size.y - favButton.getHeight();
+	   if (btnRecord != null && btnRecord.getHeight() > 0) {
+		   mHeight = size.y - btnRecord.getHeight();
 	   } else {
 		   mHeight = size.y - 150; // Zabezpieczenie na wypadek, gdyby przycisk jeszcze się nie narysował
 	   }
@@ -291,111 +321,23 @@ public void updateInterface(){
 	} else {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 	}
-	if(mBound) {
-		favButton.setText(getString(R.string.fav) + " [" + mService.isFavorite() + "]");
+	if(mBound && btnRecord != null) {
+		// Zmiana tekstu dla przycisku nagrywania
 		if(mService.isRecording()) {
-			recButton.setText(getString(R.string.restart));
+			btnRecord.setText("STOP");
 		} else {
-			recButton.setText(getString(R.string.start));
+			btnRecord.setText("START");
+		}
+
+		// Zmiana tekstu dla przycisku zabezpieczania (0 = odblokowany, 1/2 = zablokowany)
+		if(mService.isFavorite() > 0) {
+			btnLock.setText("LOCKED");
+		} else {
+			btnLock.setText("LOCK");
 		}
 	}
 }
 
- Button.OnClickListener favButtonOnClickListener
-  = new Button.OnClickListener(){
-  @SuppressLint("SetTextI18n")
-  @Override
-  public void onClick(View v) {
-   // TODO Auto-generated method stub
-	  if(mBound) {
-		  mService.toggleFavorite();
-		  favButton.setText(getString(R.string.fav) + " [" + mService.isFavorite() + "]");
-	  }
- }};
-
-  Button.OnClickListener recButtonOnClickListener
-  = new Button.OnClickListener(){
-
-@Override
-public void onClick(View v) {
-	if (mBound && mService != null) {
-		showHint(getString(R.string.longclick) + ": " + getString(R.string.preferences));
-		mService.RestartRecording();
-	} else {
-		showHint("Wait, connecting with camera..");
-	}
-}};
-
-Button.OnClickListener focButtonOnClickListener
-= new Button.OnClickListener(){
-@SuppressLint("SetTextI18n")
-@Override
-public void onClick(View v) {
-	  if(mBound) {
-		  mService.toggleFocus();
-		  focButton.setText(getString(R.string.focus) + " [" + mFocusNames[mService.getFocusMode()] + "]");
-	  }
-}};
-
-
-Button.OnClickListener nigButtonOnClickListener
-= new Button.OnClickListener(){
-@Override
-public void onClick(View v) {
-	showHint(getString(R.string.longclick) + ": " + getString(R.string.timelapse));
-	  if(mBound) {
-		  mService.toggleNight();
-	  }
-}};
-
-Button.OnClickListener flsButtonOnClickListener
-= new Button.OnClickListener(){
-@Override
-public void onClick(View v) {
-// TODO Auto-generated method stub
-	  if(mBound) {
-		  mService.toggleFlash();
-	  }
-}};
-
-Button.OnLongClickListener recButtonOnLongClickListener
-= new Button.OnLongClickListener(){
-@Override
-public boolean onLongClick(View v) {
-// TODO Auto-generated method stub
-	if (mBound && mService != null) {
-		mService.ChangeSurface(1, 1);
-		Intent myIntent = new Intent(getApplicationContext(), CosyDVRPreferenceActivity.class);
-		startActivity(myIntent);
-	} else {
-		showHint("Wait, camera loading...");
-	}
-	return true;
-}};
-
-Button.OnLongClickListener nigButtonOnLongClickListener
-= new Button.OnLongClickListener(){
-@Override
-public boolean onLongClick(View v) {
-	  if(mBound) {
-		  mService.toggleTimeLapse();
-	  }
-	  return true;
-}};
-
-Button.OnClickListener exiButtonOnClickListener
-= v -> showHint(getString(R.string.longclick) + ": " + getString(R.string.exit));
-
-Button.OnLongClickListener exiButtonOnLongClickListener
-= v -> {
-	if(mBound) {
-		unbindService(CosyDVR.this.mConnection);
-		CosyDVR.this.mBound = false;
-	}
-	stopService(new Intent(CosyDVR.this, BackgroundVideoRecorder.class));
-	CosyDVR.this.finish();
-	return true;
-};
 
 /** Defines callbacks for service binding, passed to bindService() */
 private final ServiceConnection mConnection = new ServiceConnection() {
