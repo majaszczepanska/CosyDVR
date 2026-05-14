@@ -56,12 +56,12 @@ public class BackgroundVideoRecorder extends Service implements
 	// CONSTANTS-OPTIONS
 	public long MAX_TEMP_FOLDER_SIZE_KB = 10000000;
 	public long MIN_FREE_SPACE_KB = 1000000;
-	public int MAX_VIDEO_DURATION = 600000;
-	public int VIDEO_WIDTH = 1280;// 1920;
-	public int VIDEO_HEIGHT = 720;// 1080;
+	public int MAX_VIDEO_DURATION = 1800000;
+	public int VIDEO_WIDTH = 1920;
+	public int VIDEO_HEIGHT = 1080;
 	public int VIDEO_FRAME_RATE = 30;
 	public int TIME_LAPSE_FACTOR = 1;
-	public int MAX_VIDEO_BIT_RATE = 5000000;
+	public int MAX_VIDEO_BIT_RATE = 15000000;
 	// public int MAX_VIDEO_BIT_RATE = 256000; //=for streaming;
 	public int REFRESH_TIME = 1000;
 	public String VIDEO_FILE_EXT = ".mp4";
@@ -406,14 +406,6 @@ public class BackgroundVideoRecorder extends Service implements
 
 		mHandler = new HandlerExtension();
 
-		try {
-			camera = Camera.open();
-			camera.setDisplayOrientation(ORIENTATION_ANGLE);
-			camera.setPreviewDisplay(surfaceView.getHolder());
-			camera.startPreview(); // To da Ci podgląd, gdy jeszcze nie nagrywasz
-		} catch (Exception e) {
-			Log.e("CosyDVR", "Failed to start live preview");
-		}
 
 		startGps();
 
@@ -424,6 +416,16 @@ public class BackgroundVideoRecorder extends Service implements
 	@Override
 	public void surfaceCreated(SurfaceHolder surfaceHolder) {
 		mSurfaceHolder = surfaceHolder;
+		try {
+			if (camera == null) {
+				camera = Camera.open();
+				camera.setDisplayOrientation(ORIENTATION_ANGLE);
+			}
+			camera.setPreviewDisplay(mSurfaceHolder);
+			camera.startPreview();
+		} catch (Exception e) {
+			Log.e("CosyDVR", "Preview error");
+		}
 		if (AUTOSTART) {
 			StartRecording();
 		}
@@ -460,7 +462,6 @@ public class BackgroundVideoRecorder extends Service implements
 				mGpxWriter.close();
 			} catch (IOException e) {
 			}
-			;
 
 			if (currentfile != null && isfavorite != 0) {
 				File tmpfile = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER // "/CosyDVR/temp/"
@@ -507,17 +508,17 @@ public class BackgroundVideoRecorder extends Service implements
                 ORIENTATION_HINT = Integer.parseInt(sharedPref.getString(
 				"orientation_hint", "0"));
 		MAX_VIDEO_BIT_RATE = Integer.parseInt(sharedPref.getString(
-				"video_bitrate", "5000000"));
+				"video_bitrate", "15000000"));
 		VIDEO_WIDTH = Integer.parseInt(sharedPref.getString("video_width",
-				"1280"));
+				"1920"));
 		VIDEO_HEIGHT = Integer.parseInt(sharedPref.getString("video_height",
-				"720"));
+				"1080"));
 		VIDEO_FRAME_RATE = Integer.parseInt(sharedPref.getString("video_frame_rate",
 				"30"));
 		TIME_LAPSE_FACTOR = (timelapsemode==0) ? 1: Integer.parseInt(sharedPref.getString("time_lapse_factor",
 				"1"));
 		MAX_VIDEO_DURATION = Integer.parseInt(sharedPref.getString(
-				"video_duration", "600000"));
+				"video_duration", "1800000"));
 		MAX_TEMP_FOLDER_SIZE_KB = Long.parseLong(sharedPref.getString(
 				"max_temp_folder_size", "600000"));
 		MIN_FREE_SPACE_KB = Long.parseLong(sharedPref.getString(
@@ -627,8 +628,10 @@ public class BackgroundVideoRecorder extends Service implements
 		if (!isrecording) {
 			mWakeLock.acquire();
 			try {
-				camera = Camera.open(/* CameraInfo.CAMERA_FACING_BACK */);
-				camera.setDisplayOrientation(ORIENTATION_ANGLE); //Display orientation
+				if (camera == null) {
+					camera = Camera.open();
+					camera.setDisplayOrientation(ORIENTATION_ANGLE);
+				}
 				mediaRecorder = new MediaRecorder();
 				camera.unlock();
 
@@ -645,7 +648,7 @@ public class BackgroundVideoRecorder extends Service implements
 				// .get(CamcorderProfile.QUALITY_HIGH));
 				mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
 				mediaRecorder.setAudioEncoder(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH).audioCodec);// MediaRecorder.AudioEncoder.HE_AAC
-				mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+				mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.HEVC);
 
 				mediaRecorder.setVideoEncodingBitRate(this.MAX_VIDEO_BIT_RATE);
 				mediaRecorder.setVideoSize(this.VIDEO_WIDTH, this.VIDEO_HEIGHT);// 640x480,800x480
@@ -667,7 +670,8 @@ public class BackgroundVideoRecorder extends Service implements
 				 * ParcelFileDescriptor pfd =
 				 * ParcelFileDescriptor.fromSocket(socket);
 				 * mediaRecorder.setOutputFile(pfd.getFileDescriptor()); } catch
-				 * (UnknownHostException e1) { // TODO Auto-generated catch
+				 * (UnknownHostExcept
+				 * ion e1) { // TODO Auto-generated catch
 				 * block e1.printStackTrace(); } catch (IOException e1) { //
 				 * TODO Auto-generated catch block e1.printStackTrace(); }
 				 */
@@ -695,7 +699,8 @@ public class BackgroundVideoRecorder extends Service implements
 				mediaRecorder.start();
 				isrecording = true;
 			} catch (Exception e) {
-				isrecording = true;
+				Log.e("CosyDVR", "Error starting recording", e);
+				isrecording = false;
 				ResetReleaseLock();
 			}
 		}
@@ -864,6 +869,11 @@ public class BackgroundVideoRecorder extends Service implements
 	@Override
 	public void onDestroy() {
 		StopRecording();
+		if (camera != null) {
+			camera.stopPreview();
+			camera.release();
+			camera = null;
+		}
 
 		stopGps();
 		windowManager.removeView(surfaceView);
@@ -872,9 +882,22 @@ public class BackgroundVideoRecorder extends Service implements
 		windowManager.removeView(mBatteryView);
 	}
 
+
 	@Override
-	public void surfaceChanged(SurfaceHolder surfaceHolder, int format,
-			int width, int height) {
+	public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+		if (mSurfaceHolder.getSurface() == null || camera == null || isrecording) {
+			return;
+		}
+		try {
+			camera.stopPreview();
+		} catch (Exception e) {
+		}
+		try {
+			camera.setPreviewDisplay(mSurfaceHolder);
+			camera.startPreview();
+		} catch (Exception e) {
+			Log.e("CosyDVR", "Error refreshing camera", e);
+		}
 	}
 
 	@Override
