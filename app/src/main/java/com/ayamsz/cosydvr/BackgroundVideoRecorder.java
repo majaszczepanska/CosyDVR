@@ -72,7 +72,7 @@ public class BackgroundVideoRecorder extends Service implements
 //			.getAbsolutePath();
 	public String BASE_FOLDER = "";///CosyDVR";
 	//~ public String BASE_FOLDER = "/Android/data/es.esy.CosyDVR/files"; //possible fix for KitKat
-	public String FAV_FOLDER = "/fav/";
+	public String SAVED_FOLDER = "/saved/";
 	public String TEMP_FOLDER = "/temp/";
 /*for KitKat, we can use something like:
 * final File[] dirs = context.getExternalFilesDirs(null); //null means default type
@@ -91,7 +91,8 @@ public class BackgroundVideoRecorder extends Service implements
 	private Camera camera = null;
 	private MediaRecorder mediaRecorder = null;
 	private boolean isrecording = false;
-	private int isfavorite = 0; // 0-no 1=permanentfav 2=favonce
+	private int isSaved = 0;
+	private boolean currentFileSaved = false;
 	private int focusmode = 0;
 	private int scenemode = 0;
 	private int flashmode = 0;
@@ -435,8 +436,8 @@ public class BackgroundVideoRecorder extends Service implements
 		return focusmode;
 	}
 
-	public int isFavorite() {
-		return isfavorite;
+	public int checkIsSaved() {
+		return isSaved;
 	}
 
 	public boolean isRecording() {
@@ -463,26 +464,27 @@ public class BackgroundVideoRecorder extends Service implements
 			} catch (IOException e) {
 			}
 
-			if (currentfile != null && isfavorite != 0) {
+			if (currentfile != null && currentFileSaved) {
 				File tmpfile = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER // "/CosyDVR/temp/"
 						+ currentfile + VIDEO_FILE_EXT);
-				File favfile = new File(SD_CARD_PATH + BASE_FOLDER + FAV_FOLDER // "/CosyDVR/fav/"
+				File favfile = new File(SD_CARD_PATH + BASE_FOLDER + SAVED_FOLDER // "/CosyDVR/saved/"
 						+ currentfile + VIDEO_FILE_EXT);
 				tmpfile.renameTo(favfile);
 				tmpfile = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER // "/CosyDVR/temp/"
 						+ currentfile + SRT_FILE_EXT);
-				favfile = new File(SD_CARD_PATH + BASE_FOLDER + FAV_FOLDER // "/CosyDVR/fav/" 
+				favfile = new File(SD_CARD_PATH + BASE_FOLDER + SAVED_FOLDER // "/CosyDVR/saved/"
 						+ currentfile + SRT_FILE_EXT);
 				tmpfile.renameTo(favfile);
 				tmpfile = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER // "/CosyDVR/temp/"
 						+ currentfile + GPX_FILE_EXT);
-				favfile = new File(SD_CARD_PATH + BASE_FOLDER + FAV_FOLDER // "/CosyDVR/fav/" 
+				favfile = new File(SD_CARD_PATH + BASE_FOLDER + SAVED_FOLDER // "/CosyDVR/saved"
 						+ currentfile + GPX_FILE_EXT);
 				tmpfile.renameTo(favfile);
 
-				isfavorite = 0;
+				isSaved = 0;
 			}
-			isfavorite = 0;
+			isSaved = 0;
+			currentFileSaved = false;
 			isrecording = false;
 		}
 	}
@@ -494,7 +496,9 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 	
 	public void RestartRecording() {
+		int tempSaved = isSaved;
 		StopRecording();
+		isSaved = tempSaved;
 		StartRecording();
 	}
 
@@ -534,7 +538,7 @@ public class BackgroundVideoRecorder extends Service implements
 		if (!mFolder.exists()) {
 			mFolder.mkdirs();
 		}
-		mFolder = new File(SD_CARD_PATH + BASE_FOLDER + FAV_FOLDER); //"/CosyDVR/fav/");
+		mFolder = new File(SD_CARD_PATH + BASE_FOLDER + SAVED_FOLDER); //"/CosyDVR/saved/");
 		if (!mFolder.exists()) {
 			mFolder.mkdirs();
 		}
@@ -594,6 +598,7 @@ public class BackgroundVideoRecorder extends Service implements
 			}
 		};
 		mTimer.scheduleAtFixedRate(mTimerTask, 0, REFRESH_TIME * TIME_LAPSE_FACTOR);
+		currentFileSaved = (isSaved == 1);
 		UpdateLayoutInterface();
 	}
 
@@ -767,38 +772,7 @@ public class BackgroundVideoRecorder extends Service implements
 		}
 	}
 
-	public void toggleFocus() {
-		if (camera != null) {
-			Parameters parameters = camera.getParameters();
-			do {
-				focusmode = (focusmode + 1) % mFocusModes.length;
-			} while (!parameters.getSupportedFocusModes().contains(
-					mFocusModes[focusmode])); // SKIP unsupported modes
-			applyCameraParameters();
-		}
-	}
 
-	public void toggleNight() {
-		if (camera != null) {
-			Parameters parameters = camera.getParameters();
-			do {
-				scenemode = (scenemode + 1) % mSceneModes.length;
-			} while (!parameters.getSupportedSceneModes().contains(
-					mSceneModes[scenemode])); // SKIP unsupported modes
-			applyCameraParameters();
-		}
-	}
-
-	public void toggleFlash() {
-		if (camera != null) {
-			Parameters parameters = camera.getParameters();
-			do {
-				flashmode = (flashmode + 1) % mFlashModes.length;
-			} while (!parameters.getSupportedFlashModes().contains(
-					mFlashModes[flashmode])); // SKIP unsupported modes
-			applyCameraParameters();
-		}
-	}
 
 	public void toggleTimeLapse() {
 		if (camera != null) {
@@ -819,8 +793,12 @@ public class BackgroundVideoRecorder extends Service implements
 
 	}
 
-	public void toggleFavorite() {
-		isfavorite = (isfavorite + 1) % 3;
+	public void toggleSave() {
+
+		isSaved = (isSaved + 1) % 2;
+		if (isSaved == 1){
+			currentFileSaved = true;
+		}
 	}
 
 	public void ChangeSurface(int width, int height) {
