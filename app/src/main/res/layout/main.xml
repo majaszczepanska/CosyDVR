@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical" >
 
     <View
         android:id="@+id/mainview"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
@@ -15,53 +14,83 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#673AB7"
+        android:background="#000000"
         android:weightSum="5">
 
-        <Button
+        <android.widget.Button
             android:id="@+id/btn_save"
+            android:layout_margin="4dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="SAVE"
             android:textColor="#FFFFFF"
-            android:background="?android:attr/selectableItemBackground" />
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:shadowColor="#80000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"/>
 
-        <Button
+        <android.widget.Button
             android:id="@+id/btn_record"
+            android:layout_margin="4dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="START"
             android:textColor="#FFFFFF"
-            android:background="?android:attr/selectableItemBackground" />
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:shadowColor="#80000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"/>
 
-        <Button
+        <android.widget.Button
             android:id="@+id/btn_gallery"
+            android:layout_margin="4dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="GALLERY"
             android:textColor="#FFFFFF"
-            android:background="?android:attr/selectableItemBackground" />
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:shadowColor="#80000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"/>
 
-        <Button
+        <android.widget.Button
             android:id="@+id/btn_settings"
+            android:layout_margin="4dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="SETTINGS"
             android:textColor="#FFFFFF"
-            android:background="?android:attr/selectableItemBackground" />
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:shadowColor="#80000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"/>
 
-        <Button
+        <android.widget.Button
             android:id="@+id/btn_exit"
+            android:layout_margin="4dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="EXIT"
             android:textColor="#FFFFFF"
-            android:background="?android:attr/selectableItemBackground" />
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:shadowColor="#80000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"/>
 
     </LinearLayout>
 

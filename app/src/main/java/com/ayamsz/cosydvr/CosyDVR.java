@@ -329,7 +329,6 @@ public void showHint(String text){
 	}
 }
 
-@SuppressLint("SetTextI18n")
 public void updateInterface(){
 	SharedPreferences sharedPref = PreferenceManager
 			.getDefaultSharedPreferences(this);
@@ -342,20 +341,32 @@ public void updateInterface(){
 	if(mBound && btnRecord != null) {
 		if(mService.isRecording()) {
 			btnRecord.setText("STOP");
-			btnRecord.setBackgroundColor(android.graphics.Color.parseColor("#E53935"));
+			btnRecord.setBackground(getRoundedBackground("#E53935"));
 		} else {
 			btnRecord.setText("START");
-			btnRecord.setBackgroundColor(android.graphics.Color.parseColor("#43A047"));
+			btnRecord.setBackground(getRoundedBackground("#43A047"));
 		}
 
 		if(mService.checkIsSaved() > 0) {
 			btnSave.setText("SAVING");
+			btnSave.setBackground(getRoundedBackground("#FF9800"));
 		} else {
 			btnSave.setText("SAVE");
+			btnSave.setBackground(getRoundedBackground("#673AB7"));
 		}
-		btnExit.setBackgroundColor(android.graphics.Color.parseColor("#E53935"));
+		btnGallery.setBackground(getRoundedBackground("#2196F3"));
+		btnSettings.setBackground(getRoundedBackground("#455A64"));
+		btnExit.setBackground(getRoundedBackground("#E53935"));
 	}
 }
+
+	private android.graphics.drawable.GradientDrawable getRoundedBackground(String hexColor) {
+		android.graphics.drawable.Drawable background = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.rounded_button);
+		android.graphics.drawable.GradientDrawable gradientDrawable = (android.graphics.drawable.GradientDrawable) background.mutate();
+
+		gradientDrawable.setColor(android.graphics.Color.parseColor(hexColor));
+		return gradientDrawable;
+	}
 
 
 /** Defines callbacks for service binding, passed to bindService() */
