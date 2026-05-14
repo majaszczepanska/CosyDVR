@@ -32,6 +32,8 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
 
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
             ListPreference LP = (ListPreference) findPreference("sd_card_path");
             Context context = getActivity();
 
@@ -47,7 +49,13 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
             LP.setEntries(entries);
             LP.setEntryValues(entryValues);
 
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String currentPath = sharedPref.getString("sd_card_path", "");
+            if (!currentPath.isEmpty()) {
+                LP.setSummary(currentPath);
+            } else {
+                LP.setSummary("Not set - using internal app storage");
+            }
+
             sharedPref.registerOnSharedPreferenceChangeListener(this);
 
             Map<String,?> keys = sharedPref.getAll();
@@ -57,13 +65,19 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
         }
 
         @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-            String key) {
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             Preference pref = findPreference(key);
-            if (pref instanceof EditTextPreference 
-                || pref instanceof ListPreference ) {
-                String prefixStr = sharedPreferences.getString(key, "");
-                pref.setSummary(prefixStr);
+            if (pref == null) return;
+            if (pref instanceof EditTextPreference) {
+                String value = sharedPreferences.getString(key, "");
+                if (key.equals("video_duration")) {
+                    pref.setSummary(value + " minutes");
+                } else {
+                    pref.setSummary(value);
+                }
+            } else if (pref instanceof ListPreference) {
+                ListPreference listPref = (ListPreference) pref;
+                pref.setSummary(listPref.getEntry());
             }
         }
     }

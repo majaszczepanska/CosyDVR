@@ -56,7 +56,7 @@ public class BackgroundVideoRecorder extends Service implements
 	// CONSTANTS-OPTIONS
 	public long MAX_TEMP_FOLDER_SIZE_KB = 10000000;
 	public long MIN_FREE_SPACE_KB = 1000000;
-	public int MAX_VIDEO_DURATION = 60000;
+	public int MAX_VIDEO_DURATION = 600000;
 	public int VIDEO_WIDTH = 1920;
 	public int VIDEO_HEIGHT = 1080;
 	public int VIDEO_FRAME_RATE = 30;
@@ -486,8 +486,8 @@ public class BackgroundVideoRecorder extends Service implements
 				"30"));
 		TIME_LAPSE_FACTOR = (timelapsemode==0) ? 1: Integer.parseInt(sharedPref.getString("time_lapse_factor",
 				"1"));
-		MAX_VIDEO_DURATION = Integer.parseInt(sharedPref.getString(
-				"video_duration", "60000"));
+		int durationInMinutes = Integer.parseInt(sharedPref.getString("video_duration", "10"));
+		MAX_VIDEO_DURATION = durationInMinutes * 60 * 1000;
 		MAX_TEMP_FOLDER_SIZE_KB = Long.parseLong(sharedPref.getString(
 				"max_temp_folder_size", "600000"));
 		MIN_FREE_SPACE_KB = Long.parseLong(sharedPref.getString(
