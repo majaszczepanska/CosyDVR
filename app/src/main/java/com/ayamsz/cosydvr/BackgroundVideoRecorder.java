@@ -471,9 +471,10 @@ public class BackgroundVideoRecorder extends Service implements
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		USEGPS = sharedPref.getBoolean("use_gps", true);
-                ORIENTATION_ANGLE = Integer.parseInt(sharedPref.getString(
+		focusmode = Integer.parseInt(sharedPref.getString("focus_mode_pref", "0"));
+		ORIENTATION_ANGLE = Integer.parseInt(sharedPref.getString(
 				"orientation_angle", "0"));
-                ORIENTATION_HINT = Integer.parseInt(sharedPref.getString(
+		ORIENTATION_HINT = Integer.parseInt(sharedPref.getString(
 				"orientation_hint", "0"));
 		MAX_VIDEO_BIT_RATE = Integer.parseInt(sharedPref.getString(
 				"video_bitrate", "15000000"));

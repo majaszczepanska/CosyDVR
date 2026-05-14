@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="focus_mode_entries">
+        <item>Infinity (Best for driving)</item>
+        <item>Continuous Video (Best for city/close up)</item>
+    </string-array>
+
+    <string-array name="focus_mode_values">
+        <item>0</item> <item>1</item> </string-array>
+</resources>
