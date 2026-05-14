@@ -900,33 +900,6 @@ public class BackgroundVideoRecorder extends Service implements
 		mLocationManager = null;
 	}
 
-	private int getBatteryLevel(Context context) {
-		int batteryLevel = 0;
-	    try {
-	        IntentFilter iFilter = new IntentFilter(
-	                Intent.ACTION_BATTERY_CHANGED);
-	        Intent batteryStatus = context.registerReceiver(null, iFilter, Context.RECEIVER_NOT_EXPORTED);
-	        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-	        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-	        int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-	        if (status == BatteryManager.BATTERY_STATUS_CHARGING
-	        		|| status == BatteryManager.BATTERY_STATUS_FULL) {
-	        	return -1;
-	        }
-
-	        batteryLevel = (int) (100 * level / (float) scale);
-
-	        if (batteryLevel < 0) {
-	            batteryLevel = 0;
-
-	        }
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-
-	    return batteryLevel;
-	}
-
 	private void updateHUD() {
 		if (mTextView == null || mSpeedView == null) return;
 
