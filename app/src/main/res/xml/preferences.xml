@@ -30,10 +30,11 @@
 
 		<EditTextPreference
 			android:key="video_duration"
-			android:title="Split File Duration"
-			android:dialogTitle="Duration of one fragment in ms"
+			android:title="Split File Duration (minutes)"
+			android:summary="How many minutes should one video file last?"
+			android:dialogTitle="Enter duration in minutes"
 			android:numeric="integer"
-			android:defaultValue="60000" />
+			android:defaultValue="10" />
 
 		<EditTextPreference
 			android:key="video_width"
