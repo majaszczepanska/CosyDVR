@@ -273,17 +273,6 @@ public class CosyDVR extends Activity{
 	   androidx.core.content.ContextCompat.startForegroundService(this, intent);
 	   bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
    }
-	@Override
-	public void onBackPressed() {
-		if(mBound) {
-			mService.StopRecording();
-			unbindService(mConnection);
-			mBound = false;
-		}
-		stopService(new Intent(this, BackgroundVideoRecorder.class));
-		finish();
-		super.onBackPressed();
-	}
 
   @Override
   public void onDestroy(){
@@ -347,19 +336,20 @@ public void updateInterface(){
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 	}
 	if(mBound && btnRecord != null) {
-		// Zmiana tekstu dla przycisku nagrywania
 		if(mService.isRecording()) {
 			btnRecord.setText("STOP");
+			btnRecord.setBackgroundColor(android.graphics.Color.parseColor("#E53935"));
 		} else {
 			btnRecord.setText("START");
+			btnRecord.setBackgroundColor(android.graphics.Color.parseColor("#43A047"));
 		}
 
-		// Zmiana tekstu dla przycisku zabezpieczania (0 = odblokowany, 1/2 = zablokowany)
 		if(mService.isFavorite() > 0) {
-			btnLock.setText("LOCKED");
+			btnLock.setText("SAVING");
 		} else {
-			btnLock.setText("LOCK");
+			btnLock.setText("SAVE");
 		}
+		btnExit.setBackgroundColor(android.graphics.Color.parseColor("#E53935"));
 	}
 }
 
