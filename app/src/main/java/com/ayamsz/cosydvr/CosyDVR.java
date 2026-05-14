@@ -116,6 +116,7 @@ public class CosyDVR extends Activity{
 
 	  btnSettings.setOnClickListener(v -> {
 		  if (mBound && mService != null) {
+			  mService.hideOverlays();
 			  mService.ChangeSurface(1, 1);
 			  Intent myIntent = new Intent(getApplicationContext(), CosyDVRPreferenceActivity.class);
 			  startActivity(myIntent);
@@ -209,16 +210,6 @@ public class CosyDVR extends Activity{
 			}
 		}
 	}
-/*
-  @Override
-  public void onWindowFocusChanged(boolean hasFocus) {
-      super.onWindowFocusChanged(hasFocus);
-      if(hasFocus){//check permissions
-		  if (checkAndRequestPermissions()) {
-			  setupServiceAndSize();
-		  }
-      }
-   }*/
 
    private boolean checkAndRequestPermissions() {
 	   java.util.ArrayList<String> permsList = new java.util.ArrayList<>();
@@ -269,7 +260,7 @@ public class CosyDVR extends Activity{
 	   if (btnRecord != null && btnRecord.getHeight() > 0) {
 		   mHeight = size.y - btnRecord.getHeight();
 	   } else {
-		   mHeight = size.y - 150; // Zabezpieczenie na wypadek, gdyby przycisk jeszcze się nie narysował
+		   mHeight = size.y - 150;
 	   }
 	   Intent intent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
 	   intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -299,7 +290,9 @@ public class CosyDVR extends Activity{
 	@Override
 	public void onResume(){
 		updateInterface(); //after preferences
-		if(mBound) {
+		if(mBound && mService != null) {
+			mService.showOverlays();
+
 			mainView.post(new Runnable() {
 				@Override
 				public void run() {

@@ -808,6 +808,17 @@ public class BackgroundVideoRecorder extends Service implements
 		}
 	}
 
+	public void hideOverlays() {
+		if (mTextView != null) mTextView.setVisibility(TextView.GONE);
+		if (mSpeedView != null) mSpeedView.setVisibility(TextView.GONE);
+	}
+
+	public void showOverlays() {
+		if (mTextView != null) mTextView.setVisibility(TextView.VISIBLE);
+		if (mSpeedView != null) mSpeedView.setTextColor(Color.parseColor("#FFFFFF")); // Przywracamy biały kolor
+		if (mSpeedView != null) mSpeedView.setVisibility(TextView.VISIBLE);
+	}
+
 	// Stop isrecording and remove SurfaceView
 	@Override
 	public void onDestroy() {
