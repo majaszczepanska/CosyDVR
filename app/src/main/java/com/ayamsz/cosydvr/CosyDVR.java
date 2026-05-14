@@ -36,7 +36,7 @@ import com.ayamsz.cosydvr.R;
 public class CosyDVR extends Activity{
 
     BackgroundVideoRecorder mService;
-	Button btnRecord, btnLock, btnGallery, btnSettings, btnExit;
+	Button btnRecord, btnSave, btnGallery, btnSettings, btnExit;
     View mainView;
     boolean mBound = false;
     boolean mayClick = false;
@@ -74,7 +74,7 @@ public class CosyDVR extends Activity{
 
 
 	  btnRecord = findViewById(R.id.btn_record);
-	  btnLock = findViewById(R.id.btn_lock);
+	  btnSave = findViewById(R.id.btn_save);
 	  btnGallery = findViewById(R.id.btn_gallery);
 	  btnSettings = findViewById(R.id.btn_settings);
 	  btnExit = findViewById(R.id.btn_exit);
@@ -96,10 +96,14 @@ public class CosyDVR extends Activity{
 	  });
 
 
-	  btnLock.setOnClickListener(v -> {
-		  if(mBound) {
-			  mService.toggleFavorite();
-			  updateInterface();
+	  btnSave.setOnClickListener(v -> {
+		  if(mBound && mService != null) {
+			  if(mService.isRecording()){
+				  mService.toggleSave();
+				  updateInterface();
+			  } else {
+				  showHint("Start recording first");
+			  }
 		  }
 	  });
 
@@ -344,10 +348,10 @@ public void updateInterface(){
 			btnRecord.setBackgroundColor(android.graphics.Color.parseColor("#43A047"));
 		}
 
-		if(mService.isFavorite() > 0) {
-			btnLock.setText("SAVING");
+		if(mService.checkIsSaved() > 0) {
+			btnSave.setText("SAVING");
 		} else {
-			btnLock.setText("SAVE");
+			btnSave.setText("SAVE");
 		}
 		btnExit.setBackgroundColor(android.graphics.Color.parseColor("#E53935"));
 	}

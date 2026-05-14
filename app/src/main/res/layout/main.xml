@@ -19,11 +19,11 @@
         android:weightSum="5">
 
         <Button
-            android:id="@+id/btn_lock"
+            android:id="@+id/btn_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="LOCK"
+            android:text="SAVE"
             android:textColor="#FFFFFF"
             android:background="?android:attr/selectableItemBackground" />
 
