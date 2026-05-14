@@ -56,7 +56,7 @@ public class BackgroundVideoRecorder extends Service implements
 	// CONSTANTS-OPTIONS
 	public long MAX_TEMP_FOLDER_SIZE_KB = 10000000;
 	public long MIN_FREE_SPACE_KB = 1000000;
-	public int MAX_VIDEO_DURATION = 1800000;
+	public int MAX_VIDEO_DURATION = 60000;
 	public int VIDEO_WIDTH = 1920;
 	public int VIDEO_HEIGHT = 1080;
 	public int VIDEO_FRAME_RATE = 30;
@@ -135,6 +135,16 @@ public class BackgroundVideoRecorder extends Service implements
 			Parameters.FLASH_MODE_TORCH, };
 
 	// some troubles with video files @SuppressLint("HandlerLeak")
+
+	private Handler hudHandler = new Handler();
+	private Runnable hudRunnable = new Runnable() {
+		@Override
+		public void run() {
+			updateHUD();
+			hudHandler.postDelayed(this, 1000);
+		}
+	};
+
 	private final class HandlerExtension extends Handler {
 		@android.annotation.SuppressLint("MissingPermission")
 		public void handleMessage(Message msg) {
@@ -243,36 +253,8 @@ public class BackgroundVideoRecorder extends Service implements
 				}
 			} catch (IOException e) {
 			}
-			mTextView.setText(srt);
-			if (tim != mPrevTim) {
-				mSpeedView.setText(String.format("%1.1f", spd));
-				mPrevTim = tim;
-			} else {
-                                if (USEGPS && mLocationManager != null && !mLocationManager
-						.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-					mSpeedView.setText(getString(R.string.gps_off));
-				} else {
-					mSpeedView.setText("---");
-				}
-			}
-			if(TIME_LAPSE_FACTOR > 1){
-				mSpeedView.append("("+TIME_LAPSE_FACTOR+"x)");
-			}
-			if (sat < 3) {
-				mSpeedView.setTextColor(Color.parseColor("#A0A0A0")); // gray
-			} else if (sat < 6) {
-				mSpeedView.setTextColor(Color.parseColor("#FF0000")); // red
-			} else if (sat < 9) {
-				mSpeedView.setTextColor(Color.parseColor("#FFC800")); // yellow
-			} else {
-				mSpeedView.setTextColor(Color.parseColor("#0b9800")); // green
-			}
-			bat = getBatteryLevel(getApplicationContext());
-			if(bat>=0){
-				mBatteryView.setText(String.format("%d%%",bat));
-			} else {
-				mBatteryView.setText("");
-			}
+
+			mPrevTim = tim;
 		}
 	}
 
@@ -290,26 +272,8 @@ public class BackgroundVideoRecorder extends Service implements
 
 	@Override
 	public void onCreate() {
-		// read first time-shared preferences
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		AUTOSTART = sharedPref.getBoolean("autostart_recording", false);
-		/*
-		 * MAX_VIDEO_BIT_RATE =
-		 * Integer.parseInt(sharedPref.getString("video_bitrate", "5000000"));
-		 * VIDEO_WIDTH = Integer.parseInt(sharedPref.getString("video_width",
-		 * "1280")); VIDEO_HEIGHT =
-		 * Integer.parseInt(sharedPref.getString("video_height", "720"));
-		 * MAX_VIDEO_DURATION =
-		 * Integer.parseInt(sharedPref.getString("video_duration", "600000"));
-		 * MAX_TEMP_FOLDER_SIZE_KB =
-		 * Integer.parseInt(sharedPref.getString("max_temp_folder_size",
-		 * "600000")); MIN_FREE_SPACE_KB =
-		 * Integer.parseInt(sharedPref.getString("min_free_space", "600000"));
-		 */
-		//SD_CARD_PATH = sharedPref.getString("sd_card_path", Environment
-		//		.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).getAbsolutePath());
-
-		// Start foreground service to avoid unexpected kill
 
 		Intent myIntent = new Intent(this, CosyDVR.class);
 		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -407,7 +371,7 @@ public class BackgroundVideoRecorder extends Service implements
 
 		mHandler = new HandlerExtension();
 
-
+		hudHandler.post(hudRunnable);
 		startGps();
 
 	}
@@ -522,7 +486,7 @@ public class BackgroundVideoRecorder extends Service implements
 		TIME_LAPSE_FACTOR = (timelapsemode==0) ? 1: Integer.parseInt(sharedPref.getString("time_lapse_factor",
 				"1"));
 		MAX_VIDEO_DURATION = Integer.parseInt(sharedPref.getString(
-				"video_duration", "1800000"));
+				"video_duration", "60000"));
 		MAX_TEMP_FOLDER_SIZE_KB = Long.parseLong(sharedPref.getString(
 				"max_temp_folder_size", "600000"));
 		MIN_FREE_SPACE_KB = Long.parseLong(sharedPref.getString(
@@ -858,6 +822,7 @@ public class BackgroundVideoRecorder extends Service implements
 		windowManager.removeView(mTextView);
 		windowManager.removeView(mSpeedView);
 		windowManager.removeView(mBatteryView);
+		hudHandler.removeCallbacks(hudRunnable);
 	}
 
 
@@ -960,5 +925,65 @@ public class BackgroundVideoRecorder extends Service implements
 	    }
 
 	    return batteryLevel;
+	}
+
+	private void updateHUD() {
+		if (mTextView == null || mSpeedView == null) return;
+
+		Date datetime = new Date();
+		String cleanHUD = DateFormat.format("yyyy-MM-dd HH:mm:ss", datetime.getTime()).toString();
+
+		int sat = 0;
+		float spd = 0;
+		if (USEGPS && mLocation != null) {
+			spd = mLocation.getSpeed() * 3.6f;
+			if (mLocation.getExtras() != null) {
+				sat = mLocation.getExtras().getInt("satellites");
+			}
+		}
+
+		String gpsColor;
+		String gpsStatus;
+		if (sat >= 9) {
+			gpsStatus = "Excellent";
+			gpsColor = "#0b9800";
+		} else if (sat >= 6) {
+			gpsStatus = "Good";
+			gpsColor = "#8BC34A";
+		} else if (sat >= 3) {
+			gpsStatus = "Weak";
+			gpsColor = "#FF0000";
+		} else {
+			gpsStatus = "Searching...";
+			gpsColor = "#A0A0A0";
+		}
+
+		cleanHUD += "<br>GPS: <font color='" + gpsColor + "'><b>" + gpsStatus + "</b></font>";
+
+		if (isrecording) {
+			long tick = (SystemClock.elapsedRealtime() - mNewFileBegin) / TIME_LAPSE_FACTOR;
+			int min = (int) (tick % (1000 * 60 * 60) / (1000 * 60));
+			int sec = (int) (tick % (1000 * 60) / 1000);
+			cleanHUD += String.format("<br>Rec: %02d:%02d", min, sec);
+		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			mTextView.setText(android.text.Html.fromHtml(cleanHUD, android.text.Html.FROM_HTML_MODE_LEGACY));
+		} else {
+			mTextView.setText(android.text.Html.fromHtml(cleanHUD));
+		}
+
+		if (USEGPS) {
+			if (mLocationManager != null && !mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+				mSpeedView.setText("GPS OFF");
+				mSpeedView.setTextColor(Color.parseColor("#A0A0A0"));
+			} else {
+				mSpeedView.setText(String.format("%1.1f", spd));
+				mSpeedView.setTextColor(Color.parseColor("#FFFFFF"));
+			}
+		} else {
+			mSpeedView.setText("---");
+			mSpeedView.setTextColor(Color.parseColor("#A0A0A0"));
+		}
 	}
 }
