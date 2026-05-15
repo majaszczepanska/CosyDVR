@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-	android:title="Preferences">
-	<PreferenceCategory android:title="Preferences">
+	android:title="Settings">
 
+	<PreferenceCategory android:title="General">
 		<CheckBoxPreference
 			android:key="autostart_recording"
 			android:title="Autostart Recording"
@@ -14,12 +14,9 @@
 			android:title="Use GPS"
 			android:summary="Determine position and speed via GPS"
 			android:defaultValue="true" />
+	</PreferenceCategory>
 
-		<ListPreference
-			android:key="sd_card_path"
-			android:title="External Storage Path"
-			android:summary="Default storage" />
-
+	<PreferenceCategory android:title="Video &amp; Camera">
 		<ListPreference
 			android:key="focus_mode_pref"
 			android:title="Camera Focus Mode"
@@ -27,14 +24,6 @@
 			android:entries="@array/focus_mode_entries"
 			android:entryValues="@array/focus_mode_values"
 			android:defaultValue="0" />
-
-		<EditTextPreference
-			android:key="video_duration"
-			android:title="Split File Duration (minutes)"
-			android:summary="How many minutes should one video file last?"
-			android:dialogTitle="Enter duration in minutes"
-			android:numeric="integer"
-			android:defaultValue="10" />
 
 		<EditTextPreference
 			android:key="video_width"
@@ -50,7 +39,7 @@
 
 		<EditTextPreference
 			android:key="video_frame_rate"
-			android:title="Video Frame Rate"
+			android:title="Video Frame Rate (FPS)"
 			android:numeric="integer"
 			android:defaultValue="30" />
 
@@ -59,6 +48,21 @@
 			android:title="Video Bitrate"
 			android:numeric="integer"
 			android:defaultValue="15000000" />
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Storage &amp; Files">
+		<ListPreference
+			android:key="sd_card_path"
+			android:title="External Storage Path"
+			android:summary="Default storage" />
+
+		<EditTextPreference
+			android:key="video_duration"
+			android:title="Split File Duration (minutes)"
+			android:summary="How many minutes should one video file last?"
+			android:dialogTitle="Enter duration in minutes"
+			android:numeric="integer"
+			android:defaultValue="10" />
 
 		<ListPreference
 			android:key="retention_time"
@@ -67,7 +71,6 @@
 			android:entries="@array/retention_entries"
 			android:entryValues="@array/retention_values"
 			android:defaultValue="7" />
-
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="Help &amp; Info">

@@ -65,6 +65,17 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
         }
 
         @Override
+        public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+
+            // Obliczamy odpowiedni margines (np. 60dp, co wystarczy na zegar i baterię)
+            int paddingTop = (int) (60 * getResources().getDisplayMetrics().density);
+
+            // Ustawiamy padding (lewo: 0, góra: margines, prawo: 0, dół: 0)
+            view.setPadding(0, paddingTop, 0, 0);
+        }
+
+        @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             Preference pref = findPreference(key);
             if (pref == null) return;
