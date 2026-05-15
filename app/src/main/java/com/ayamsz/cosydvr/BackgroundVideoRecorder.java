@@ -80,6 +80,10 @@ public class BackgroundVideoRecorder extends Service implements
 */
 	public boolean AUTOSTART = false;
 	public boolean USEGPS = true;
+
+	public boolean RECORD_AUDIO = true;
+
+	public String SPEED_UNITS = "kmh";
 	public boolean REVERSE_ORIENTATION = false;
         public int ORIENTATION_ANGLE = 0;
         public int ORIENTATION_HINT = 0;
@@ -478,10 +482,17 @@ public class BackgroundVideoRecorder extends Service implements
 				"orientation_hint", "0"));
 		MAX_VIDEO_BIT_RATE = Integer.parseInt(sharedPref.getString(
 				"video_bitrate", "15000000"));
-		VIDEO_WIDTH = Integer.parseInt(sharedPref.getString("video_width",
-				"1920"));
-		VIDEO_HEIGHT = Integer.parseInt(sharedPref.getString("video_height",
-				"1080"));
+
+		String resolution = sharedPref.getString("video_resolution", "1920x1080");
+		String[] resParts = resolution.split("x");
+		VIDEO_WIDTH = Integer.parseInt(resParts[0]);
+		VIDEO_HEIGHT = Integer.parseInt(resParts[1]);
+
+
+		RECORD_AUDIO = sharedPref.getBoolean("record_audio", true);
+		SPEED_UNITS = sharedPref.getString("speed_units", "kmh");
+
+		// (Reszta zostaje jak była, np. video_bitrate czy fps)
 		VIDEO_FRAME_RATE = Integer.parseInt(sharedPref.getString("video_frame_rate",
 				"30"));
 		TIME_LAPSE_FACTOR = (timelapsemode==0) ? 1: Integer.parseInt(sharedPref.getString("time_lapse_factor",
@@ -609,15 +620,21 @@ public class BackgroundVideoRecorder extends Service implements
 				mediaRecorder.setCamera(camera);
 
 				// Step 2: Set sources
-				mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+				if (RECORD_AUDIO) {
+					mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+				}
 				mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+				mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+
+				if (RECORD_AUDIO) {
+					mediaRecorder.setAudioEncoder(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH).audioCodec);
+				}
 
 				// Step 3: Set a CamcorderProfile (requires API Level 8 or
 				// higher)
 				// mediaRecorder.setProfile(CamcorderProfile
 				// .get(CamcorderProfile.QUALITY_HIGH));
-				mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-				mediaRecorder.setAudioEncoder(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH).audioCodec);// MediaRecorder.AudioEncoder.HE_AAC
+
 				mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.HEVC);
 
 				mediaRecorder.setVideoEncodingBitRate(this.MAX_VIDEO_BIT_RATE);
@@ -939,7 +956,8 @@ public class BackgroundVideoRecorder extends Service implements
 		int sat = 0;
 		float spd = 0;
 		if (USEGPS && mLocation != null) {
-			spd = mLocation.getSpeed() * 3.6f;
+			float speedFactor = SPEED_UNITS.equals("mph") ? 2.23694f : 3.6f;
+			spd = mLocation.getSpeed() * speedFactor;
 			if (mLocation.getExtras() != null) {
 				sat = mLocation.getExtras().getInt("satellites");
 			}

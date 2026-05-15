@@ -14,9 +14,23 @@
 			android:title="Use GPS"
 			android:summary="Determine position and speed via GPS"
 			android:defaultValue="true" />
+
+		<ListPreference
+			android:key="speed_units"
+			android:title="Speed Units"
+			android:summary="Choose km/h or mph"
+			android:entries="@array/speed_unit_entries"
+			android:entryValues="@array/speed_unit_values"
+			android:defaultValue="kmh" />
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="Video &amp; Camera">
+		<CheckBoxPreference
+			android:key="record_audio"
+			android:title="Record Audio"
+			android:summary="Enable or disable microphone recording"
+			android:defaultValue="true" />
+
 		<ListPreference
 			android:key="focus_mode_pref"
 			android:title="Camera Focus Mode"
@@ -25,28 +39,26 @@
 			android:entryValues="@array/focus_mode_values"
 			android:defaultValue="0" />
 
-		<EditTextPreference
-			android:key="video_width"
-			android:title="Video Width"
-			android:numeric="integer"
-			android:defaultValue="1920" />
+		<ListPreference
+			android:key="video_resolution"
+			android:title="Video Resolution"
+			android:summary="Higher resolution takes more space"
+			android:entries="@array/resolution_entries"
+			android:entryValues="@array/resolution_values"
+			android:defaultValue="1920x1080" />
 
-		<EditTextPreference
-			android:key="video_height"
-			android:title="Video Height"
-			android:numeric="integer"
-			android:defaultValue="1080" />
-
-		<EditTextPreference
+		<ListPreference
 			android:key="video_frame_rate"
 			android:title="Video Frame Rate (FPS)"
-			android:numeric="integer"
+			android:entries="@array/fps_entries"
+			android:entryValues="@array/fps_values"
 			android:defaultValue="30" />
 
-		<EditTextPreference
+		<ListPreference
 			android:key="video_bitrate"
-			android:title="Video Bitrate"
-			android:numeric="integer"
+			android:title="Video Quality (Bitrate)"
+			android:entries="@array/bitrate_entries"
+			android:entryValues="@array/bitrate_values"
 			android:defaultValue="15000000" />
 	</PreferenceCategory>
 
