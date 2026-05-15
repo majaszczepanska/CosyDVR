@@ -60,11 +60,13 @@
 			android:numeric="integer"
 			android:defaultValue="15000000" />
 
-		<EditTextPreference
-			android:key="max_temp_folder_size"
-			android:title="Temp Folder Size Limit"
-			android:numeric="integer"
-			android:defaultValue="10000000" />
+		<ListPreference
+			android:key="retention_time"
+			android:title="Keep Temporary Videos For"
+			android:summary="How long should temporary videos be stored?"
+			android:entries="@array/retention_entries"
+			android:entryValues="@array/retention_values"
+			android:defaultValue="7" />
 
 	</PreferenceCategory>
 
@@ -77,23 +79,27 @@
 			<Preference
 				android:selectable="false"
 				android:title="SAVE Button"
-				android:summary="Protects the currently recording video (30 min) from being overwritten and moves it to the /fav folder." />
+				android:summary="Protects the current 10-minute fragment from being overwritten and moves it to the /saved folder." />
+
 			<Preference
 				android:selectable="false"
 				android:title="START / STOP Button"
-				android:summary="Starts or stops the video recording." />
+				android:summary="Starts or stops the background video recording." />
+
 			<Preference
 				android:selectable="false"
 				android:title="GALLERY Button"
-				android:summary="Opens the list of recorded videos and saved incidents." />
+				android:summary="Opens the list of recorded videos (temp) and protected files (saved)." />
+
 			<Preference
 				android:selectable="false"
 				android:title="SETTINGS Button"
-				android:summary="Opens application configuration." />
+				android:summary="Opens application configuration, quality and focus settings." />
+
 			<Preference
 				android:selectable="false"
 				android:title="EXIT Button"
-				android:summary="Completely shuts down the application and background recording service." />
+				android:summary="Completely shuts down the application and background service." />
 		</PreferenceScreen>
 
 		<Preference

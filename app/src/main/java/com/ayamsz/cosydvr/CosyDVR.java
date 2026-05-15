@@ -277,7 +277,6 @@ public class CosyDVR extends Activity{
 	  }
 	  super.onDestroy();
   }
-
   @Override
   public void onPause(){
 	  if(mBound) {

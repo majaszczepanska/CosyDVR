@@ -677,35 +677,53 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void freeSpace() {
-		File dir = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER); //"/CosyDVR/temp/");
+		File dir = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER);
 		File[] filelist = dir.listFiles();
-		if (filelist == null) return;
-		Arrays.sort(filelist, new Comparator<File>() {
-			public int compare(File f1, File f2) {
-				return Long.valueOf(f2.lastModified()).compareTo(
-						f1.lastModified());
+		if (filelist == null || filelist.length == 0) return;
+
+		// get limit of days
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		int retentionDays = Integer.parseInt(sharedPref.getString("retention_time", "7"));
+
+		long currentTime = System.currentTimeMillis();
+		long limitInMillis = retentionDays * 24 * 60 * 60 * 1000L;
+
+		// delete old files
+		if (retentionDays > 0) {
+			for (File file : filelist) {
+				long fileAge = currentTime - file.lastModified();
+				if (fileAge > limitInMillis) {
+					deleteFileWithExtras(file);
+					Log.d("CosyDVR", "Time clean: deleted " + file.getName());
+				}
 			}
-		});
-		long totalSizeKb = 0;
-		int i;
-		for (i = 0; i < filelist.length; i++) {
-			totalSizeKb += filelist[i].length() / 1024;
 		}
-		i = filelist.length - 1;
-		// if(Build.VERSION.SDK_INT >= 11) {
-		while (i > 0 && (totalSizeKb > this.MAX_TEMP_FOLDER_SIZE_KB)
-		    || (dir.getFreeSpace() / 1024) < this.MIN_FREE_SPACE_KB) {
-			totalSizeKb -= filelist[i].length() / 1024;
-			filelist[i].delete();
-			i--;
+
+		// check space
+		long freeSpaceKB = dir.getFreeSpace() / 1024;
+		long warningLimitKB = 1048576; // 1GB
+
+		if (freeSpaceKB < warningLimitKB) {
+			Log.w("CosyDVR", "Storage critically low!");
+
+			// notification - too less space
+			new android.os.Handler(android.os.Looper.getMainLooper()).post(new Runnable() {
+				@Override
+				public void run() {
+					android.widget.Toast.makeText(getApplicationContext(),
+							"WARNING: Low Storage (< 1GB)! Video might not save properly. Please free up space.",
+							android.widget.Toast.LENGTH_LONG).show();
+				}
+			});
 		}
-		// } else {
-		// while (i > 0 && totalSizeKb > this.MAX_TEMP_FOLDER_SIZE_KB) {
-		// totalSizeKb -= filelist[i].length()/1024;
-		// filelist[i].delete();
-		// i--;
-		// }
-		// }
+	}
+
+	// other files (.srt, .gpx)
+	private void deleteFileWithExtras(File file) {
+		String baseName = file.getAbsolutePath().replaceAll("\\..*$", "");
+		new File(baseName + SRT_FILE_EXT).delete();
+		new File(baseName + GPX_FILE_EXT).delete();
+		file.delete();
 	}
 
 	public void autoFocus() {
