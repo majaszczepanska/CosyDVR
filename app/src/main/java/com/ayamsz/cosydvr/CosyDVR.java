@@ -288,9 +288,19 @@ public class CosyDVR extends Activity{
 
 	@Override
 	public void onResume(){
-		updateInterface(); //after preferences
+		super.onResume();
+		ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+
 		if(mBound && mService != null) {
 			mService.showOverlays();
+
+			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+			boolean autostart = sharedPref.getBoolean("autostart_recording", false);
+
+			if (autostart && !mService.isRecording()) {
+				mService.StartRecording();
+				showHint("Auto-restarting recording...");
+			}
 
 			mainView.post(new Runnable() {
 				@Override
@@ -304,8 +314,7 @@ public class CosyDVR extends Activity{
 				}
 			});
 		}
-		super.onResume();
-		ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+		updateInterface();
 	}
 
 public void showHint(String text){
@@ -370,6 +379,15 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 		BackgroundVideoRecorder.LocalBinder binder = (BackgroundVideoRecorder.LocalBinder) service;
 		mService = binder.getService();
 		mBound = true;
+
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CosyDVR.this);
+		boolean autostart = sharedPref.getBoolean("autostart_recording", false);
+
+		if (autostart && !mService.isRecording()) {
+			mService.StartRecording();
+			showHint("Auto-restarting recording...");
+		}
+
 		updateInterface();
 
 		mainView.post(new Runnable() {

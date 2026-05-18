@@ -302,7 +302,16 @@ public class BackgroundVideoRecorder extends Service implements
 				.setSmallIcon(R.drawable.cosydvricon)
 				.setContentIntent(pendingIntent)
 				.build();
-		startForeground(1, notification);
+		//startForeground(1, notification);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			startForeground(1, notification,
+					android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA |
+							android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION |
+							android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+		} else {
+			startForeground(1, notification);
+		}
 
 		// Create new SurfaceView, set its size to 1x1, move it to the top left
 		// corner and set this service as a callback
@@ -580,7 +589,13 @@ public class BackgroundVideoRecorder extends Service implements
 
 	private void Stop() {
 		if (isrecording && mediaRecorder != null) {
-			mediaRecorder.stop();
+			try {
+				mediaRecorder.stop();
+			} catch (RuntimeException e) {
+				Log.e("CosyDVR", "Error while stopping MediaRecordera: " + e.getMessage());
+			}
+
+
 			mediaRecorder.reset();
 			mediaRecorder.release();
 			mediaRecorder = null;
@@ -588,8 +603,13 @@ public class BackgroundVideoRecorder extends Service implements
 			try {
 				camera.reconnect();
 				camera.startPreview();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				Log.e("CosyDVR", "Camera is probably used by the different app: " + e.getMessage());
+				try {
+					camera.release();
+				} catch (Exception ignored) {}
+
+				camera = null;
 			}
 		}
 	}
@@ -613,6 +633,50 @@ public class BackgroundVideoRecorder extends Service implements
 					camera = Camera.open();
 					camera.setDisplayOrientation(ORIENTATION_ANGLE);
 				}
+
+				camera.setErrorCallback(new Camera.ErrorCallback() {
+					@Override
+					public void onError(int error, Camera camera) {
+						Log.e("CosyDVR", "Camera used by the different process, error: " + error);
+
+						new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+							android.widget.Toast.makeText(getApplicationContext(),
+									"CosyDVR: Recording stopped! \nCamera taken over by another app.",
+									android.widget.Toast.LENGTH_LONG).show();
+						});
+
+						String channelId = "cosydvr_background_channel";
+						Intent myIntent = new Intent(BackgroundVideoRecorder.this, CosyDVR.class);
+						myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						PendingIntent pendingIntent = PendingIntent.getActivity(
+								BackgroundVideoRecorder.this, 0, myIntent, PendingIntent.FLAG_IMMUTABLE);
+
+						Notification warningNotification = new Notification.Builder(BackgroundVideoRecorder.this, channelId)
+								.setContentTitle("CosyDVR - WARNING")
+								.setContentText("Camera lost! Recording paused.")
+								.setSmallIcon(R.drawable.cosydvricon)
+								.setContentIntent(pendingIntent)
+								.setColor(android.graphics.Color.RED)
+								.build();
+
+						android.app.NotificationManager manager = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+						if (manager != null) {
+							manager.notify(1, warningNotification);
+						}
+
+						android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+						if (vibrator != null && vibrator.hasVibrator()) {
+							if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+								vibrator.vibrate(android.os.VibrationEffect.createWaveform(new long[]{0, 200, 100, 200, 100, 200}, -1));
+							} else {
+								vibrator.vibrate(600);
+							}
+						}
+						StopRecording();
+					}
+				});
+
+
 				mediaRecorder = new MediaRecorder();
 				camera.unlock();
 
@@ -680,6 +744,18 @@ public class BackgroundVideoRecorder extends Service implements
 				mediaRecorder.setMaxDuration(this.MAX_VIDEO_DURATION);
 				mediaRecorder.setMaxFileSize(0); // 0 - no limit
 				mediaRecorder.setOnInfoListener(this);
+
+				mediaRecorder.setOnErrorListener((mr, what, extra) -> {
+					Log.e("CosyDVR", "MediaRecorder Error: " + what + ", " + extra);
+					StopRecording(); 
+
+					new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+						android.widget.Toast.makeText(getApplicationContext(),
+								"CosyDVR ERROR: Camera connection lost!",
+								android.widget.Toast.LENGTH_LONG).show();
+					});
+				});
+
 				mediaRecorder.setOrientationHint(ORIENTATION_HINT); //mark videofile as rotated
 
 				mediaRecorder.prepare();
