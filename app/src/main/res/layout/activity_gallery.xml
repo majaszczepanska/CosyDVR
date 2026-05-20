@@ -9,25 +9,33 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="12dp">
 
         <Button
-            android:id="@+id/btnTemp"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TEMP (Loop)" />
+        android:id="@+id/btnTemp"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="6dp"
+        android:text="TEMP (Loop)"
+        android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/btnSaved"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_weight="1"
-            android:text="SAVED (Protected)" />
+            android:layout_marginStart="6dp"
+            android:text="SAVED (Protected)"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <ListView
         android:id="@+id/videoListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:divider="#333333"
+        android:dividerHeight="1dp" />
+
 </LinearLayout>
