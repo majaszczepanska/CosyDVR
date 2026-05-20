@@ -22,6 +22,7 @@ public class GalleryActivity extends Activity {
     private ListView listView;
     private List<File> currentFiles = new ArrayList<>();
     private Button btnTemp, btnSaved;
+    private String currentFolder = "/saved/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,10 +46,17 @@ public class GalleryActivity extends Activity {
             playVideo(fileToPlay);
         });
 
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+                    File selectedFile = currentFiles.get(position);
+                    showActionDialog(selectedFile);
+                    return true;
+        });
+
         loadFolder("/saved/");
     }
 
     private void loadFolder(String folderName) {
+        currentFolder = folderName;
         if (folderName.equals("/saved/")) {
             btnSaved.setBackground(getRoundedBackground("#673AB7"));
             btnTemp.setBackground(getRoundedBackground("#455A64"));
@@ -61,12 +69,12 @@ public class GalleryActivity extends Activity {
         for (File f : currentFiles) {
             fileNames.add(f.getName());
         }
-
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.list_item_white, fileNames);
         */
 
         VideoAdapter adapter = new VideoAdapter(this, currentFiles);
         listView.setAdapter(adapter);
+
     }
 
     private List<File> getVideosFromFolder(String folderName) {
@@ -181,6 +189,102 @@ public class GalleryActivity extends Activity {
 
             return convertView;
         }
+    }
+
+    private void showActionDialog(File file) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Manage Video");
+
+        if (currentFolder.equals("/temp/")) {
+            // if file in /temp - choice (move to saved or delete)
+            String[] options = {"Move to SAVED", "Delete File"};
+            builder.setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    moveToSavedWithExtras(file);
+                    android.widget.Toast.makeText(this, "Moved to SAVED", android.widget.Toast.LENGTH_SHORT).show();
+                } else if (which == 1) {
+                    deleteFileWithExtras(file);
+                    android.widget.Toast.makeText(this, "File deleted", android.widget.Toast.LENGTH_SHORT).show();
+                }
+                loadFolder(currentFolder); // refresh file list
+            });
+        } else {
+            // file in saved - choice (move to temp or delete)
+            String[] options = {"Move to TEMP (Unprotect)", "Delete File"};
+            builder.setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    moveToTempWithExtras(file);
+                    android.widget.Toast.makeText(this, "Moved to TEMP", android.widget.Toast.LENGTH_SHORT).show();
+                } else if (which == 1) {
+                    deleteFileWithExtras(file);
+                    android.widget.Toast.makeText(this, "File deleted", android.widget.Toast.LENGTH_SHORT).show();
+                }
+                loadFolder(currentFolder); // refresh
+            });
+        }
+
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    // delete film with srt and gpx files
+    private void deleteFileWithExtras(File file) {
+        String baseName = file.getAbsolutePath().replaceAll("\\.mp4$", "");
+        new File(baseName + ".srt").delete();
+        new File(baseName + ".gpx").delete();
+        file.delete();
+    }
+
+    // move files to save
+    private void moveToSavedWithExtras(File file) {
+        File savedDir = new File(SD_CARD_PATH + BASE_FOLDER + "/saved/");
+        if (!savedDir.exists()) {
+            savedDir.mkdirs();
+        }
+
+        String name = file.getName();
+        String baseName = name.replaceAll("\\.mp4$", "");
+
+        // files in saved
+        File targetMp4 = new File(savedDir, name);
+        File targetSrt = new File(savedDir, baseName + ".srt");
+        File targetGpx = new File(savedDir, baseName + ".gpx");
+
+        // files in temp
+        String sourceBasePath = file.getAbsolutePath().replaceAll("\\.mp4$", "");
+        File sourceSrt = new File(sourceBasePath + ".srt");
+        File sourceGpx = new File(sourceBasePath + ".gpx");
+
+        // move
+        file.renameTo(targetMp4);
+        if (sourceSrt.exists()) sourceSrt.renameTo(targetSrt);
+        if (sourceGpx.exists()) sourceGpx.renameTo(targetGpx);
+    }
+
+    // move files back to temp (unprotect)
+    private void moveToTempWithExtras(File file) {
+        File tempDir = new File(SD_CARD_PATH + BASE_FOLDER + "/temp/");
+        if (!tempDir.exists()) {
+            tempDir.mkdirs();
+        }
+
+        String name = file.getName();
+        String baseName = name.replaceAll("\\.mp4$", "");
+
+        // target files in temp
+        File targetMp4 = new File(tempDir, name);
+        File targetSrt = new File(tempDir, baseName + ".srt");
+        File targetGpx = new File(tempDir, baseName + ".gpx");
+
+        // source files in saved
+        String sourceBasePath = file.getAbsolutePath().replaceAll("\\.mp4$", "");
+        File sourceSrt = new File(sourceBasePath + ".srt");
+        File sourceGpx = new File(sourceBasePath + ".gpx");
+
+        // move
+        file.renameTo(targetMp4);
+        if (sourceSrt.exists()) sourceSrt.renameTo(targetSrt);
+        if (sourceGpx.exists()) sourceGpx.renameTo(targetGpx);
     }
 }
 
