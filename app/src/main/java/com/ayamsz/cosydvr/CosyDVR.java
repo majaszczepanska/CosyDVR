@@ -111,6 +111,13 @@ public class CosyDVR extends Activity{
 	  btnGallery.setOnClickListener(v -> {
 		  showHint("Opening Gallery...");
 
+		  if (mBound && mService != null) {
+			  mService.hideOverlays();
+		  }
+
+		  Intent galleryIntent = new Intent(CosyDVR.this, GalleryActivity.class);
+		  startActivity(galleryIntent);
+
 	  });
 
 
