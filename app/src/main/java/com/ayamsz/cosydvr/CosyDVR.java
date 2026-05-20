@@ -40,6 +40,7 @@ public class CosyDVR extends Activity{
     View mainView;
     boolean mBound = false;
     boolean mayClick = false;
+	boolean mUserStoppedManually = false;
     private int mWidth=1,mHeight=1;
     private float mScaleFactor = 4.0f;
     private final String[] mFocusNames = {"I",
@@ -84,9 +85,11 @@ public class CosyDVR extends Activity{
 		  if (mBound && mService != null) {
 			  if (mService.isRecording()) {
 				  mService.StopRecording();
+				  mUserStoppedManually = true;
 				  showHint("Recording Stopped");
 			  } else {
 				  mService.StartRecording();
+				  mUserStoppedManually = false;
 				  showHint("Recording Started");
 			  }
 			  updateInterface();
@@ -304,8 +307,9 @@ public class CosyDVR extends Activity{
 			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 			boolean autostart = sharedPref.getBoolean("autostart_recording", false);
 
-			if (autostart && !mService.isRecording()) {
+			if (autostart && !mService.isRecording() && !mUserStoppedManually) {
 				mService.StartRecording();
+				mUserStoppedManually = false;
 				showHint("Auto-restarting recording...");
 			}
 
@@ -390,8 +394,9 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CosyDVR.this);
 		boolean autostart = sharedPref.getBoolean("autostart_recording", false);
 
-		if (autostart && !mService.isRecording()) {
+		if (autostart && !mService.isRecording() && !mUserStoppedManually) {
 			mService.StartRecording();
+			mUserStoppedManually = false;
 			showHint("Auto-restarting recording...");
 		}
 
