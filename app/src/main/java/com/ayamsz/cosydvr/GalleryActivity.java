@@ -21,7 +21,7 @@ public class GalleryActivity extends Activity {
     private String BASE_FOLDER = "";
     private ListView listView;
     private List<File> currentFiles = new ArrayList<>();
-    private Button btnTemp, btnSaved;
+    private Button btnTemp, btnSaved, btnBack;
     private String currentFolder = "/saved/";
 
     @Override
@@ -37,6 +37,10 @@ public class GalleryActivity extends Activity {
         btnTemp = findViewById(R.id.btnTemp);
         btnSaved = findViewById(R.id.btnSaved);
         listView = findViewById(R.id.videoListView);
+
+        btnBack = findViewById(R.id.btnBack);
+        btnBack.setBackground(getRoundedBackground("#263238"));
+        btnBack.setOnClickListener(v -> finish());
 
         btnTemp.setOnClickListener(v -> loadFolder("/temp/"));
         btnSaved.setOnClickListener(v -> loadFolder("/saved/"));

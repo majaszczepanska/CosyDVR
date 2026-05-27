@@ -10,25 +10,40 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="8dp"
+        android:gravity="center_vertical">
 
         <Button
-        android:id="@+id/btnTemp"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_weight="1"
-        android:layout_marginEnd="6dp"
-        android:text="TEMP (Loop)"
-        android:textColor="#FFFFFF" />
+            android:id="@+id/btnBack"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
+            android:text="❮"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnTemp"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="TEMP (Loop)"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:maxLines="1" />
 
         <Button
             android:id="@+id/btnSaved"
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="50dp"
             android:layout_weight="1"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="4dp"
             android:text="SAVED (Protected)"
-            android:textColor="#FFFFFF" />
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:maxLines="1" />
     </LinearLayout>
 
     <ListView
