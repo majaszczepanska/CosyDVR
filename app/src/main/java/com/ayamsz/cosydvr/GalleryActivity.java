@@ -29,6 +29,13 @@ public class GalleryActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
 
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                    () -> returnToMainMenu()
+            );
+        }
+
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         File externalDir = getExternalFilesDir(null);
         String defaultPath = (externalDir != null) ? externalDir.getAbsolutePath() : getFilesDir().getAbsolutePath();
@@ -40,7 +47,7 @@ public class GalleryActivity extends Activity {
 
         btnBack = findViewById(R.id.btnBack);
         btnBack.setBackground(getRoundedBackground("#263238"));
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> returnToMainMenu());
 
         btnTemp.setOnClickListener(v -> loadFolder("/temp/"));
         btnSaved.setOnClickListener(v -> loadFolder("/saved/"));
@@ -290,6 +297,19 @@ public class GalleryActivity extends Activity {
         if (sourceSrt.exists()) sourceSrt.renameTo(targetSrt);
         if (sourceGpx.exists()) sourceGpx.renameTo(targetGpx);
     }
+    private void returnToMainMenu() {
+        Intent intent = new Intent(this, CosyDVR.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
+        finish();
+    }
+
+    // old android sdk
+    @Override
+    public void onBackPressed() {
+        returnToMainMenu();
+    }
 }
+
 
 

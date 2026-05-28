@@ -1,5 +1,6 @@
 package com.ayamsz.cosydvr;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,6 +21,16 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
     protected void onCreate(final Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        if (getActionBar() != null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                    () -> returnToMainMenu()
+            );
+        }
+
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
     }
 
@@ -61,7 +72,7 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
             Map<String,?> keys = sharedPref.getAll();
             for(Map.Entry<String,?> entry : keys.entrySet()){
                 onSharedPreferenceChanged(sharedPref,entry.getKey());
-            } 
+            }
         }
 
         @Override
@@ -98,9 +109,22 @@ public class CosyDVRPreferenceActivity extends PreferenceActivity
     @Override
     public boolean onOptionsItemSelected(android.view.MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // Zamyka ustawienia i wraca do menu
+            returnToMainMenu();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+    private void returnToMainMenu() {
+        Intent intent = new Intent(this, CosyDVR.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
+        finish();
+    }
+
+    // old android sdk
+    @Override
+    public void onBackPressed() {
+        returnToMainMenu();
+    }
 }
+
