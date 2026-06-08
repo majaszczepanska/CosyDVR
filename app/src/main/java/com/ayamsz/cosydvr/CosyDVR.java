@@ -267,11 +267,7 @@ public class CosyDVR extends Activity{
 	   Point size = new Point();
 	   display.getRealSize(size);
 	   mWidth = size.x;
-	   if (btnRecord != null && btnRecord.getHeight() > 0) {
-		   mHeight = size.y - btnRecord.getHeight();
-	   } else {
-		   mHeight = size.y - 150;
-	   }
+	   mHeight = size.y;
 	   Intent intent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
 	   intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	   //startService(intent);

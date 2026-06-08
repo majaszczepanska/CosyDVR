@@ -13,6 +13,9 @@ import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.view.Gravity;
 import android.view.SurfaceView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -112,6 +115,10 @@ public class BackgroundVideoRecorder extends Service implements
 	public TextView mTextView = null;
 	public TextView mSpeedView = null;
 	public TextView mBatteryView = null;
+
+	private View mButtonOverlay = null;
+	private Button btnSaveOvl, btnRecordOvl, btnGalleryOvl, btnSettingsOvl, btnExitOvl;
+
 	public long mSrtCounter = 0;
 	public Handler mHandler = null;
 
@@ -386,7 +393,74 @@ public class BackgroundVideoRecorder extends Service implements
 
 		hudHandler.post(hudRunnable);
 		startGps();
+		createButtonOverlay();
+	}
 
+	private void createButtonOverlay() {
+		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mButtonOverlay = inflater.inflate(R.layout.overlay_buttons, null);
+
+		int overlayType;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+		} else {
+			overlayType = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+		}
+
+		WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+				WindowManager.LayoutParams.MATCH_PARENT,
+				WindowManager.LayoutParams.WRAP_CONTENT,
+				overlayType,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+				PixelFormat.TRANSLUCENT);
+
+		params.gravity = Gravity.BOTTOM;
+		windowManager.addView(mButtonOverlay, params);
+		mButtonOverlay.setVisibility(View.GONE);
+
+		btnSaveOvl = mButtonOverlay.findViewById(R.id.ovl_btn_save);
+		btnRecordOvl = mButtonOverlay.findViewById(R.id.ovl_btn_record);
+		btnGalleryOvl = mButtonOverlay.findViewById(R.id.ovl_btn_gallery);
+		btnSettingsOvl = mButtonOverlay.findViewById(R.id.ovl_btn_settings);
+		btnExitOvl = mButtonOverlay.findViewById(R.id.ovl_btn_exit);
+
+		// Set initial colors for Gallery, Settings and Exit
+		btnGalleryOvl.getBackground().setTint(Color.parseColor("#2196F3"));
+		btnSettingsOvl.getBackground().setTint(Color.parseColor("#455A64"));
+		btnExitOvl.getBackground().setTint(Color.parseColor("#E53935"));
+
+		btnRecordOvl.setOnClickListener(v -> {
+			if (isrecording) {
+				StopRecording();
+			} else {
+				StartRecording();
+			}
+			updateHUD();
+		});
+
+		btnSaveOvl.setOnClickListener(v -> {
+			toggleSave();
+			updateHUD();
+		});
+
+		btnGalleryOvl.setOnClickListener(v -> {
+			ChangeSurface(1, 1);
+			Intent intent = new Intent(this, GalleryActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(intent);
+		});
+
+		btnSettingsOvl.setOnClickListener(v -> {
+			ChangeSurface(1, 1);
+			Intent intent = new Intent(this, CosyDVRPreferenceActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(intent);
+		});
+
+		btnExitOvl.setOnClickListener(v -> {
+			stopSelf();
+			android.os.Process.killProcess(android.os.Process.myPid());
+		});
 	}
 
 	// Method called right after Surface created (initializing and starting
@@ -836,7 +910,7 @@ public class BackgroundVideoRecorder extends Service implements
                 && parameters.getSupportedSceneModes().contains(mSceneModes[scenemode])) {
 				parameters.setSceneMode(mSceneModes[scenemode]);
 			}
-			if(parameters.getSupportedFlashModes() != null 
+			if(parameters.getSupportedFlashModes() != null
                 && parameters.getSupportedFlashModes().contains(mFlashModes[flashmode])) {
 				parameters.setFlashMode(mFlashModes[flashmode]);
 			}
@@ -912,10 +986,12 @@ public class BackgroundVideoRecorder extends Service implements
 			mTextView.setVisibility(TextView.VISIBLE);
 			mSpeedView.setVisibility(TextView.VISIBLE);
 			mBatteryView.setVisibility(TextView.VISIBLE);
+			if (mButtonOverlay != null) mButtonOverlay.setVisibility(View.VISIBLE);
 		} else {
 			mTextView.setVisibility(TextView.INVISIBLE);
 			mSpeedView.setVisibility(TextView.INVISIBLE);
 			mBatteryView.setVisibility(TextView.INVISIBLE);
+			if (mButtonOverlay != null) mButtonOverlay.setVisibility(View.GONE);
 		}
 	}
 
@@ -941,6 +1017,7 @@ public class BackgroundVideoRecorder extends Service implements
 		}
 
 		stopGps();
+		if (mButtonOverlay != null) windowManager.removeView(mButtonOverlay);
 		windowManager.removeView(surfaceView);
 		windowManager.removeView(mTextView);
 		windowManager.removeView(mSpeedView);
@@ -1081,6 +1158,24 @@ public class BackgroundVideoRecorder extends Service implements
 		} else {
 			mSpeedView.setText("---");
 			mSpeedView.setTextColor(Color.parseColor("#A0A0A0"));
+		}
+
+		// Update Overlay Buttons state
+		if (btnRecordOvl != null) {
+			btnRecordOvl.setText(isrecording ? "STOP" : "START");
+			if (isrecording) {
+				btnRecordOvl.getBackground().setTint(Color.parseColor("#E53935")); // Red
+			} else {
+				btnRecordOvl.getBackground().setTint(Color.parseColor("#43A047")); // Green
+			}
+		}
+		if (btnSaveOvl != null) {
+			btnSaveOvl.setText(isSaved == 1 ? "SAVING" : "SAVE");
+			if (isSaved == 1) {
+				btnSaveOvl.getBackground().setTint(Color.parseColor("#FF9800")); // Orange
+			} else {
+				btnSaveOvl.getBackground().setTint(Color.parseColor("#673AB7")); // Violet
+			}
 		}
 	}
 }
