@@ -13,11 +13,9 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -30,7 +28,6 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 
 public class CosyDVR extends Activity {
-
 	private View mainView;
 	private Button btnRecord, btnSave, btnGallery, btnSettings, btnExit;
 
@@ -282,6 +279,7 @@ public void showHint(String text){
 	Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 }
 
+@SuppressLint("SetTextI18n")
 public void updateInterface(){
 	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 	boolean REVERSE_ORIENTATION = sharedPref.getBoolean("reverse_landscape", false);

@@ -99,7 +99,10 @@ public class BackgroundVideoRecorder extends Service implements
 	private int isSaved = 0;
 	private boolean currentFileSaved = false;
 	private int focusmode = 0;
-    private String currentfile = null;
+	private int scenemode = 0;
+	private int flashmode = 0;
+	private int zoomfactor = 0;
+	private String currentfile = null;
 
 	private SurfaceHolder mSurfaceHolder = null;
 	private PowerManager.WakeLock mWakeLock = null;
@@ -452,6 +455,10 @@ public class BackgroundVideoRecorder extends Service implements
 		}
 	}
 
+	public int checkIsSaved() {
+		return isSaved;
+	}
+
 	public boolean isRecording() {
 		return isrecording;
 	}
@@ -677,10 +684,7 @@ public class BackgroundVideoRecorder extends Service implements
 						manager1.notify(1, warningNotification);
 					}
 
-					android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-					if (vibrator != null && vibrator.hasVibrator()) {
-						vibrator.vibrate(android.os.VibrationEffect.createWaveform(new long[]{0, 200, 100, 200, 100, 200}, -1));
-					}
+					triggerVibration();
 					StopRecording();
 				});
 
@@ -725,6 +729,7 @@ public class BackgroundVideoRecorder extends Service implements
 
 				mediaRecorder.setOnErrorListener((mr, what, extra) -> {
 					Log.e("CosyDVR", "MediaRecorder Error: " + what + ", " + extra);
+					triggerVibration();
 					StopRecording(); 
 
 					new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
@@ -805,23 +810,32 @@ public class BackgroundVideoRecorder extends Service implements
 			if(parameters.getSupportedFocusModes().contains(mFocusModes[focusmode])) {
 				parameters.setFocusMode(mFocusModes[focusmode]);
 			}
-            int scenemode = 0;
             if(parameters.getSupportedSceneModes() != null
                 && parameters.getSupportedSceneModes().contains(mSceneModes[scenemode])) {
 				parameters.setSceneMode(mSceneModes[scenemode]);
 			}
-            int flashmode = 0;
             if(parameters.getSupportedFlashModes() != null
                 && parameters.getSupportedFlashModes().contains(mFlashModes[flashmode])) {
 				parameters.setFlashMode(mFlashModes[flashmode]);
 			}
             if (parameters.isZoomSupported()) {
-                int zoomfactor = 0;
                 parameters.setZoom(zoomfactor);
                 camera.setParameters(parameters);
             }
 			camera.setParameters(parameters);
 		}
+	}
+
+	public void setZoom(float mval) {
+		if (camera != null) {
+			Parameters parameters = camera.getParameters();
+			if (parameters.isZoomSupported()) {
+				zoomfactor = (int) (parameters.getMaxZoom() * (mval - 4) / 10.0);
+				parameters.setZoom(zoomfactor);
+				camera.setParameters(parameters);
+			}
+		}
+
 	}
 
 
@@ -851,7 +865,7 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void toggleSave() {
-
+		triggerVibration();
 		isSaved = (isSaved + 1) % 2;
 		if (isSaved == 1){
 			currentFileSaved = true;
@@ -965,6 +979,13 @@ public class BackgroundVideoRecorder extends Service implements
 			}
 		}
 		return START_STICKY;
+	}
+
+	private void triggerVibration() {
+		android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		if (vibrator != null && vibrator.hasVibrator()) {
+			vibrator.vibrate(android.os.VibrationEffect.createWaveform(new long[]{0, 200, 100, 200, 100, 200}, -1));
+		}
 	}
 
 	private void updateNotification() {
