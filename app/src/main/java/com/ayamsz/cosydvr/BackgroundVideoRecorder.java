@@ -840,7 +840,8 @@ public class BackgroundVideoRecorder extends Service implements
 
 
 
-	private void requestAudioFocus() {
+	@SuppressLint("SuspiciousIndentation")
+    private void requestAudioFocus() {
 		if (mAudioManager == null) return;
 
         mFocusRequest = new android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
@@ -1053,7 +1054,7 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void onLocationChanged(@NonNull Location location) {
-		// Doing something with the position...
+		mLocation = location;
 	}
 
 	public void onProviderDisabled(@NonNull String provider) {
