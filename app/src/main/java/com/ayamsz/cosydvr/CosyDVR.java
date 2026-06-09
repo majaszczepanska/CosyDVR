@@ -2,7 +2,6 @@ package com.ayamsz.cosydvr;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,7 +14,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -25,9 +23,12 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
-public class CosyDVR extends Activity {
+public class CosyDVR extends AppCompatActivity {
 	private View mainView;
 	private Button btnRecord, btnSave, btnGallery, btnSettings, btnExit;
 
@@ -150,7 +151,8 @@ public class CosyDVR extends Activity {
   }
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		if (requestCode == 100) {
 			boolean allGranted = true;
 			for (int result : grantResults) {
@@ -261,14 +263,11 @@ public class CosyDVR extends Activity {
 				mUserStoppedManually = false;
 			}
 
-			mainView.post(new Runnable() {
-				@Override
-				public void run() {
-					mWidth = mainView.getWidth();
-					mHeight = mainView.getHeight();
-					if (mWidth > 0 && mHeight > 0) {
-						mService.ChangeSurface(mWidth, mHeight);
-					}
+			mainView.post(() -> {
+				mWidth = mainView.getWidth();
+				mHeight = mainView.getHeight();
+				if (mWidth > 0 && mHeight > 0) {
+					mService.ChangeSurface(mWidth, mHeight);
 				}
 			});
 		}
@@ -311,6 +310,7 @@ public void updateInterface(){
 
 	private android.graphics.drawable.GradientDrawable getRoundedBackground(String hexColor) {
 		android.graphics.drawable.Drawable background = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.rounded_button);
+		if (background == null) return null;
 		android.graphics.drawable.GradientDrawable gradientDrawable = (android.graphics.drawable.GradientDrawable) background.mutate();
 		gradientDrawable.setColor(android.graphics.Color.parseColor(hexColor));
 		return gradientDrawable;
@@ -323,14 +323,11 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 		mService = binder.getService();
 		mBound = true;
 		updateInterface();
-		mainView.post(new Runnable() {
-			@Override
-			public void run() {
-				mWidth = mainView.getWidth();
-				mHeight = mainView.getHeight();
-				if (mWidth > 0 && mHeight > 0) {
-					mService.ChangeSurface(mWidth, mHeight);
-				}
+		mainView.post(() -> {
+			mWidth = mainView.getWidth();
+			mHeight = mainView.getHeight();
+			if (mWidth > 0 && mHeight > 0) {
+				mService.ChangeSurface(mWidth, mHeight);
 			}
 		});
 	}
@@ -340,7 +337,7 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 	}
 };
 
-	private BroadcastReceiver receiver = new BroadcastReceiver() {
+	private final BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			updateInterface();
