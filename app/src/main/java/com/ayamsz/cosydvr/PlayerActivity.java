@@ -86,6 +86,12 @@ public class PlayerActivity extends Activity {
         if (videoPath != null) {
             loadSrtData(videoPath.replace(".mp4", ".srt"));
             videoView.setVideoURI(Uri.parse(videoPath));
+            
+            if (savedInstanceState != null) {
+                int pos = savedInstanceState.getInt("videoPos");
+                videoView.seekTo(pos);
+            }
+            
             videoView.start();
             
             // Ustaw mapę na początek trasy
@@ -100,6 +106,14 @@ public class PlayerActivity extends Activity {
                 }
             }
             startSyncLoop();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (videoView != null) {
+            outState.putInt("videoPos", videoView.getCurrentPosition());
         }
     }
 
