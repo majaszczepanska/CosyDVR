@@ -322,22 +322,7 @@ public class BackgroundVideoRecorder extends Service implements
 			manager.createNotificationChannel(channel);
 		}
 
-		Notification notification = new Notification.Builder(this, channelId)
-				.setContentTitle("CosyDVR")
-				.setContentText(" Background Recorder Service")
-				.setSmallIcon(R.drawable.cosydvricon)
-				.setContentIntent(pendingIntent)
-				.build();
-		//startForeground(1, notification);
-
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			startForeground(1, notification,
-					android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA |
-							android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION |
-							android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
-		} else {
-			startForeground(1, notification);
-		}
+		updateNotification();
 
 		// Create new SurfaceView, set its size to 1x1, move it to the top left
 		// corner and set this service as a callback
@@ -558,6 +543,7 @@ public class BackgroundVideoRecorder extends Service implements
 			isSaved = 0;
 			currentFileSaved = false;
 			isrecording = false;
+			updateNotification();
 		}
 		abandonAudioFocus();
 	}
@@ -680,6 +666,7 @@ public class BackgroundVideoRecorder extends Service implements
 		};
 		mTimer.scheduleAtFixedRate(mTimerTask, 0, REFRESH_TIME * TIME_LAPSE_FACTOR);
 		currentFileSaved = (isSaved == 1);
+		updateNotification();
 		UpdateLayoutInterface();
 	}
 
@@ -999,6 +986,7 @@ public class BackgroundVideoRecorder extends Service implements
 		if (isSaved == 1){
 			currentFileSaved = true;
 		}
+		updateNotification();
 	}
 
 	public void ChangeSurface(int width, int height) {
@@ -1095,6 +1083,71 @@ public class BackgroundVideoRecorder extends Service implements
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (intent != null && intent.getAction() != null) {
+			String action = intent.getAction();
+			if (action.equals("SAVE")) {
+				toggleSave();
+				updateHUD();
+			} else if (action.equals("STOP")) {
+				StopRecording();
+				updateHUD();
+			} else if (action.equals("START")) {
+				StartRecording();
+				updateHUD();
+			}
+		}
+		return START_STICKY;
+	}
+
+	private void updateNotification() {
+		String channelId = "cosydvr_background_channel";
+		Intent myIntent = new Intent(this, CosyDVR.class);
+		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, myIntent, PendingIntent.FLAG_IMMUTABLE);
+
+		String contentText = isrecording ? (isSaved == 1 ? "Recording (SAVING...)" : "Recording in Progress") : "Service Active - Ready";
+
+		Notification.Builder builder = new Notification.Builder(this, channelId)
+				.setContentTitle("CosyDVR")
+				.setContentText(contentText)
+				.setSmallIcon(R.drawable.cosydvricon)
+				.setContentIntent(pendingIntent);
+
+		if (isrecording) {
+			builder.addAction(new Notification.Action.Builder(null, "SAVE", getPendingIntent("SAVE")).build());
+			builder.addAction(new Notification.Action.Builder(null, "STOP", getPendingIntent("STOP")).build());
+		} else {
+			builder.addAction(new Notification.Action.Builder(null, "START", getPendingIntent("START")).build());
+		}
+
+		Notification notification = builder.build();
+
+		if (!isrecording) {
+			// Przy pierwszym uruchomieniu lub gdy nie nagrywa
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				startForeground(1, notification,
+						android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA |
+								android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION |
+								android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+			} else {
+				startForeground(1, notification);
+			}
+		} else {
+			android.app.NotificationManager manager = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			if (manager != null) {
+				manager.notify(1, notification);
+			}
+		}
+	}
+
+	private PendingIntent getPendingIntent(String action) {
+		Intent intent = new Intent(this, BackgroundVideoRecorder.class);
+		intent.setAction(action);
+		return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 	}
 
 	@Override
