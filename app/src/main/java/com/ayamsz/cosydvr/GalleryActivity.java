@@ -1,27 +1,34 @@
 package com.ayamsz.cosydvr;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
-public class GalleryActivity extends Activity {
+public class GalleryActivity extends AppCompatActivity {
 
     private String SD_CARD_PATH = "";
-    private String BASE_FOLDER = "";
+    private final String BASE_FOLDER = "";
     private ListView listView;
     private List<File> currentFiles = new ArrayList<>();
-    private Button btnTemp, btnSaved, btnBack;
+    private Button btnTemp, btnSaved;
     private String currentFolder = "/saved/";
 
     @Override
@@ -29,12 +36,12 @@ public class GalleryActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
 
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                    () -> returnToMainMenu()
-            );
-        }
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                returnToMainMenu();
+            }
+        });
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         File externalDir = getExternalFilesDir(null);
@@ -45,8 +52,7 @@ public class GalleryActivity extends Activity {
         btnSaved = findViewById(R.id.btnSaved);
         listView = findViewById(R.id.videoListView);
 
-        btnBack = findViewById(R.id.btnBack);
-        btnBack.setBackground(getRoundedBackground("#263238"));
+        android.widget.ImageButton btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> returnToMainMenu());
 
         btnTemp.setOnClickListener(v -> loadFolder("/temp/"));
@@ -68,24 +74,23 @@ public class GalleryActivity extends Activity {
 
     private void loadFolder(String folderName) {
         currentFolder = folderName;
-        if (folderName.equals("/saved/")) {
-            btnSaved.setBackground(getRoundedBackground("#673AB7"));
-            btnTemp.setBackground(getRoundedBackground("#455A64"));
-        } else {
-            btnTemp.setBackground(getRoundedBackground("#2196F3"));
-            btnSaved.setBackground(getRoundedBackground("#455A64"));
-        }
-        currentFiles = getVideosFromFolder(folderName);
-        /*List<String> fileNames = new ArrayList<>();
-        for (File f : currentFiles) {
-            fileNames.add(f.getName());
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.list_item_white, fileNames);
-        */
+        
+        // Definiujemy kolory
+        int purple = android.graphics.Color.parseColor("#673AB7");
+        int blue = android.graphics.Color.parseColor("#2196F3");
+        int gray = android.graphics.Color.parseColor("#455A64");
 
+        if (Objects.equals(folderName, "/saved/")) {
+            btnSaved.setBackgroundTintList(android.content.res.ColorStateList.valueOf(purple));
+            btnTemp.setBackgroundTintList(android.content.res.ColorStateList.valueOf(gray));
+        } else {
+            btnTemp.setBackgroundTintList(android.content.res.ColorStateList.valueOf(blue));
+            btnSaved.setBackgroundTintList(android.content.res.ColorStateList.valueOf(gray));
+        }
+        
+        currentFiles = getVideosFromFolder(folderName);
         VideoAdapter adapter = new VideoAdapter(this, currentFiles);
         listView.setAdapter(adapter);
-
     }
 
     private List<File> getVideosFromFolder(String folderName) {
@@ -101,12 +106,11 @@ public class GalleryActivity extends Activity {
         return videoList;
     }
 
+
     private void playVideo(File file) {
-        Uri videoUri = androidx.core.content.FileProvider.getUriForFile(this,
-                getApplicationContext().getPackageName() + ".provider", file);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(videoUri, "video/mp4");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // Zamiast wysyłać intent do systemu (ACTION_VIEW), odpalamy nasz nowy ekran
+        Intent intent = new Intent(this, PlayerActivity.class);
+        intent.putExtra("VIDEO_PATH", file.getAbsolutePath());
         startActivity(intent);
     }
     private android.graphics.drawable.GradientDrawable getRoundedBackground(String hexColor) {
@@ -122,18 +126,22 @@ public class GalleryActivity extends Activity {
             super(context, 0, files);
         }
 
+        @NonNull
         @Override
-        public android.view.View getView(int position, android.view.View convertView, android.view.ViewGroup parent) {
-            if (convertView == null) {
-                convertView = android.view.LayoutInflater.from(getContext()).inflate(R.layout.list_item_video, parent, false);
+        public android.view.View getView(int position, android.view.View convertView, @NonNull android.view.ViewGroup parent) {
+            android.view.View view = convertView;
+            if (view == null) {
+                view = android.view.LayoutInflater.from(getContext()).inflate(R.layout.list_item_video, parent, false);
             }
 
             File currentFile = getItem(position);
             File previousFile = position > 0 ? getItem(position - 1) : null;
 
-            android.widget.TextView tvDateHeader = convertView.findViewById(R.id.tvDateHeader);
-            android.widget.TextView tvTime = convertView.findViewById(R.id.tvTime);
-            android.widget.TextView tvSize = convertView.findViewById(R.id.tvSize);
+            if (currentFile == null) return view;
+
+            android.widget.TextView tvDateHeader = view.findViewById(R.id.tvDateHeader);
+            android.widget.TextView tvTime = view.findViewById(R.id.tvTime);
+            android.widget.TextView tvSize = view.findViewById(R.id.tvSize);
 
             String fileName = currentFile.getName();
 
@@ -156,20 +164,17 @@ public class GalleryActivity extends Activity {
 
             // 3. VIDEO DURATION (MediaMetadataRetriever)
             String durationPart = "00:00";
-            android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever();
-            try {
+            try (android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever()) {
                 retriever.setDataSource(currentFile.getAbsolutePath());
                 String durationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
                 if (durationStr != null) {
                     long durationMs = Long.parseLong(durationStr);
                     long seconds = (durationMs / 1000) % 60;
                     long minutes = (durationMs / (1000 * 60)) % 60;
-                    durationPart = String.format("%02d:%02d", minutes, seconds);
+                    durationPart = String.format(Locale.US, "%02d:%02d", minutes, seconds);
                 }
             } catch (Exception e) {
                 android.util.Log.e("CosyDVR", "Error reading video duration: " + e.getMessage());
-            } finally {
-                try { retriever.release(); } catch (Exception ignored) {}
             }
 
             // Grouping logic based on formatted date
@@ -184,7 +189,7 @@ public class GalleryActivity extends Activity {
                 }
             }
 
-            if (!datePart.equals(prevDatePart)) {
+            if (!Objects.equals(datePart, prevDatePart)) {
                 tvDateHeader.setVisibility(android.view.View.VISIBLE);
                 tvDateHeader.setText(datePart);
             } else {
@@ -192,13 +197,13 @@ public class GalleryActivity extends Activity {
             }
 
             // Set duration in the main text field
-            tvTime.setText("Duration: " + durationPart);
+            tvTime.setText(String.format(Locale.US, "Duration: %s", durationPart));
 
             // Combine start time and file size in the subtitle
             long fileSizeInMB = currentFile.length() / (1024 * 1024);
-            tvSize.setText("Time: " + startTimePart + "  •  Size: " + fileSizeInMB + " MB");
+            tvSize.setText(String.format(Locale.US, "Time: %s  •  Size: %d MB", startTimePart, fileSizeInMB));
 
-            return convertView;
+            return view;
         }
     }
 
@@ -206,7 +211,7 @@ public class GalleryActivity extends Activity {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         builder.setTitle("Manage Video");
 
-        if (currentFolder.equals("/temp/")) {
+        if (Objects.equals(currentFolder, "/temp/")) {
             // if file in /temp - choice (move to saved or delete)
             String[] options = {"Move to SAVED", "Delete File"};
             builder.setItems(options, (dialog, which) -> {
@@ -241,16 +246,16 @@ public class GalleryActivity extends Activity {
     // delete film with srt and gpx files
     private void deleteFileWithExtras(File file) {
         String baseName = file.getAbsolutePath().replaceAll("\\.mp4$", "");
-        new File(baseName + ".srt").delete();
-        new File(baseName + ".gpx").delete();
-        file.delete();
+        if (!new File(baseName + ".srt").delete()) Log.d("CosyDVR", "No srt to delete");
+        if (!new File(baseName + ".gpx").delete()) Log.d("CosyDVR", "No gpx to delete");
+        if (!file.delete()) Log.e("CosyDVR", "Failed to delete video file");
     }
 
     // move files to save
     private void moveToSavedWithExtras(File file) {
         File savedDir = new File(SD_CARD_PATH + BASE_FOLDER + "/saved/");
         if (!savedDir.exists()) {
-            savedDir.mkdirs();
+            if (!savedDir.mkdirs()) Log.e("CosyDVR", "Failed to create saved directory");
         }
 
         String name = file.getName();
@@ -267,16 +272,20 @@ public class GalleryActivity extends Activity {
         File sourceGpx = new File(sourceBasePath + ".gpx");
 
         // move
-        file.renameTo(targetMp4);
-        if (sourceSrt.exists()) sourceSrt.renameTo(targetSrt);
-        if (sourceGpx.exists()) sourceGpx.renameTo(targetGpx);
+        if (!file.renameTo(targetMp4)) Log.e("CosyDVR", "Failed to move mp4");
+        if (sourceSrt.exists()) {
+            if (!sourceSrt.renameTo(targetSrt)) Log.e("CosyDVR", "Failed to move srt");
+        }
+        if (sourceGpx.exists()) {
+            if (!sourceGpx.renameTo(targetGpx)) Log.e("CosyDVR", "Failed to move gpx");
+        }
     }
 
     // move files back to temp (unprotect)
     private void moveToTempWithExtras(File file) {
         File tempDir = new File(SD_CARD_PATH + BASE_FOLDER + "/temp/");
         if (!tempDir.exists()) {
-            tempDir.mkdirs();
+            if (!tempDir.mkdirs()) Log.e("CosyDVR", "Failed to create temp directory");
         }
 
         String name = file.getName();
@@ -293,21 +302,19 @@ public class GalleryActivity extends Activity {
         File sourceGpx = new File(sourceBasePath + ".gpx");
 
         // move
-        file.renameTo(targetMp4);
-        if (sourceSrt.exists()) sourceSrt.renameTo(targetSrt);
-        if (sourceGpx.exists()) sourceGpx.renameTo(targetGpx);
+        if (!file.renameTo(targetMp4)) Log.e("CosyDVR", "Failed to move mp4 back to temp");
+        if (sourceSrt.exists()) {
+            if (!sourceSrt.renameTo(targetSrt)) Log.e("CosyDVR", "Failed to move srt back to temp");
+        }
+        if (sourceGpx.exists()) {
+            if (!sourceGpx.renameTo(targetGpx)) Log.e("CosyDVR", "Failed to move gpx back to temp");
+        }
     }
     private void returnToMainMenu() {
         Intent intent = new Intent(this, CosyDVR.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
         finish();
-    }
-
-    // old android sdk
-    @Override
-    public void onBackPressed() {
-        returnToMainMenu();
     }
 }
 
