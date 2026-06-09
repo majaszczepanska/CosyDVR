@@ -135,6 +135,23 @@ public class BackgroundVideoRecorder extends Service implements
 	private Location mLocation = null;
 	private long mPrevTim = 0;
 
+	private AudioManager mAudioManager = null;
+	private android.media.AudioFocusRequest mFocusRequest = null;
+
+	private final AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = focusChange -> {
+		switch (focusChange) {
+			case AudioManager.AUDIOFOCUS_LOSS:
+			case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+				// Jeśli stracimy focus (np. ktoś zadzwoni), opcjonalnie możemy wyciszyć nagrywanie
+				// lub po prostu zalogować ten fakt. Większość dashcamów nagrywa dalej bez dźwięku.
+				Log.d("CosyDVR", "Audio Focus lost");
+				break;
+			case AudioManager.AUDIOFOCUS_GAIN:
+				Log.d("CosyDVR", "Audio Focus gained");
+				break;
+		}
+	};
+
 	// private List<String> mFocusModes;
 	private String[] mFocusModes = { Parameters.FOCUS_MODE_INFINITY,
 			Parameters.FOCUS_MODE_CONTINUOUS_VIDEO, Parameters.FOCUS_MODE_AUTO,
@@ -393,6 +410,8 @@ public class BackgroundVideoRecorder extends Service implements
 
 		mHandler = new HandlerExtension();
 
+		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
 		hudHandler.post(hudRunnable);
 		startGps();
 		createButtonOverlay();
@@ -540,6 +559,7 @@ public class BackgroundVideoRecorder extends Service implements
 			currentFileSaved = false;
 			isrecording = false;
 		}
+		abandonAudioFocus();
 	}
 
 	public void UpdateLayoutInterface() {
@@ -556,6 +576,7 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void StartRecording() {
+		requestAudioFocus();
 		/* Rereading preferences */
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -942,6 +963,34 @@ public class BackgroundVideoRecorder extends Service implements
 			}
 		}
 
+	}
+
+	private void requestAudioFocus() {
+		if (mAudioManager == null) return;
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			mFocusRequest = new android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+					.setAudioAttributes(new android.media.AudioAttributes.Builder()
+							.setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+							.setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+							.build())
+					.setAcceptsDelayedFocusGain(true)
+					.setOnAudioFocusChangeListener(mOnAudioFocusChangeListener)
+					.build();
+			mAudioManager.requestAudioFocus(mFocusRequest);
+		} else {
+			mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+		}
+	}
+
+	private void abandonAudioFocus() {
+		if (mAudioManager == null) return;
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mFocusRequest != null) {
+			mAudioManager.abandonAudioFocusRequest(mFocusRequest);
+		} else {
+			mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+		}
 	}
 
 	public void toggleSave() {
