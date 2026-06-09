@@ -2,8 +2,34 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.CosyDVR_new" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
     <style name="Theme.CosyDVR_new" parent="Base.Theme.CosyDVR_new" />
+
+    <style name="Theme.CosyDVR.Settings" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">#2196F3</item>
+        <item name="colorSecondary">#2196F3</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="android:windowBackground">#121212</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">#A0A0A0</item>
+
+        <!-- Nowoczesny styl dla okien dialogowych (Pop-upów) -->
+        <item name="android:alertDialogTheme">@style/Theme.CosyDVR.Dialog</item>
+
+        <!-- Styl kategorii (Nagłówków) -->
+        <item name="preferenceCategoryStyle">@style/MyCategoryStyle</item>
+    </style>
+
+    <style name="Theme.CosyDVR.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="colorPrimary">#2196F3</item>
+    </style>
+
+    <style name="MyCategoryStyle" parent="Preference.Category.Material">
+        <item name="android:layout_marginTop">32dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="allowDividerAbove">true</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
 </resources>

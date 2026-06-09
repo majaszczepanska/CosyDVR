@@ -2,38 +2,47 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
 	android:title="Settings">
 
-	<PreferenceCategory android:title="General">
-		<CheckBoxPreference
+	<PreferenceCategory
+		android:title="General"
+		android:icon="@drawable/ic_gen">
+		<SwitchPreferenceCompat
 			android:key="autostart_recording"
 			android:title="Autostart Recording"
+			android:icon="@drawable/ic_autostart"
 			android:summary="Automatically start recording upon launch"
 			android:defaultValue="false" />
 
-		<CheckBoxPreference
+		<SwitchPreferenceCompat
 			android:key="use_gps"
 			android:title="Use GPS"
+			android:icon="@drawable/ic_gps"
 			android:summary="Determine position and speed via GPS"
 			android:defaultValue="true" />
 
 		<ListPreference
 			android:key="speed_units"
 			android:title="Speed Units"
+			android:icon="@drawable/ic_speed"
 			android:summary="Choose km/h or mph"
 			android:entries="@array/speed_unit_entries"
 			android:entryValues="@array/speed_unit_values"
 			android:defaultValue="kmh" />
 	</PreferenceCategory>
 
-	<PreferenceCategory android:title="Video &amp; Camera">
-		<CheckBoxPreference
+	<PreferenceCategory
+		android:title="Video &amp; Camera"
+		android:icon="@drawable/ic_vid">
+		<SwitchPreferenceCompat
 			android:key="record_audio"
 			android:title="Record Audio"
+			android:icon="@drawable/ic_mic"
 			android:summary="Enable or disable microphone recording"
 			android:defaultValue="true" />
 
 		<ListPreference
 			android:key="focus_mode_pref"
 			android:title="Camera Focus Mode"
+			android:icon="@drawable/ic_focus"
 			android:summary="Choose how the camera focuses"
 			android:entries="@array/focus_mode_entries"
 			android:entryValues="@array/focus_mode_values"
@@ -42,6 +51,7 @@
 		<ListPreference
 			android:key="video_resolution"
 			android:title="Video Resolution"
+			android:icon="@drawable/ic_resolution"
 			android:summary="Higher resolution takes more space"
 			android:entries="@array/resolution_entries"
 			android:entryValues="@array/resolution_values"
@@ -50,6 +60,8 @@
 		<ListPreference
 			android:key="video_frame_rate"
 			android:title="Video Frame Rate (FPS)"
+			android:icon="@drawable/ic_fps"
+			android:summary="Select smoothness of the video"
 			android:entries="@array/fps_entries"
 			android:entryValues="@array/fps_values"
 			android:defaultValue="30" />
@@ -57,21 +69,27 @@
 		<ListPreference
 			android:key="video_bitrate"
 			android:title="Video Quality (Bitrate)"
+			android:icon="@drawable/ic_bitrate"
+			android:summary="Impacts file size and clarity"
 			android:entries="@array/bitrate_entries"
 			android:entryValues="@array/bitrate_values"
 			android:defaultValue="15000000" />
 	</PreferenceCategory>
 
-	<PreferenceCategory android:title="Storage &amp; Files">
+	<PreferenceCategory
+		android:title="Storage &amp; Files"
+		android:icon="@drawable/ic_sd">
 		<ListPreference
 			android:key="sd_card_path"
 			android:title="External Storage Path"
-			android:summary="Default storage" />
+			android:icon="@drawable/ic_folder"
+			android:summary="Default storage folder" />
 
 		<EditTextPreference
 			android:key="video_duration"
 			android:title="Split File Duration (minutes)"
-			android:summary="How many minutes should one video file last?"
+			android:icon="@drawable/ic_timer"
+			android:summary="Length of each video segment"
 			android:dialogTitle="Enter duration in minutes"
 			android:numeric="integer"
 			android:defaultValue="10" />
@@ -79,48 +97,38 @@
 		<ListPreference
 			android:key="retention_time"
 			android:title="Keep Temporary Videos For"
-			android:summary="How long should temporary videos be stored?"
+			android:icon="@drawable/ic_retention"
+			android:summary="Auto-delete old temporary files"
 			android:entries="@array/retention_entries"
 			android:entryValues="@array/retention_values"
 			android:defaultValue="7" />
 	</PreferenceCategory>
 
-	<PreferenceCategory android:title="Help &amp; Info">
+	<PreferenceCategory
+		android:title="Help &amp; Info"
+		android:icon="@drawable/ic_info">
 		<PreferenceScreen
 			android:key="screen_instructions"
 			android:title="Manual / Instructions"
+			android:icon="@drawable/ic_help"
 			android:summary="Click to view button functions">
 
 			<Preference
 				android:selectable="false"
 				android:title="SAVE Button"
-				android:summary="Protects the current 10-minute fragment from being overwritten and moves it to the /saved folder." />
+				android:summary="Protects the current 10-minute fragment from being overwritten." />
 
 			<Preference
 				android:selectable="false"
 				android:title="START / STOP Button"
 				android:summary="Starts or stops the background video recording." />
-
-			<Preference
-				android:selectable="false"
-				android:title="GALLERY Button"
-				android:summary="Opens the list of recorded videos (temp) and protected files (saved)." />
-
-			<Preference
-				android:selectable="false"
-				android:title="SETTINGS Button"
-				android:summary="Opens application configuration, quality and focus settings." />
-
-			<Preference
-				android:selectable="false"
-				android:title="EXIT Button"
-				android:summary="Completely shuts down the application and background service." />
 		</PreferenceScreen>
 
 		<Preference
 			android:key="instruction_about"
 			android:selectable="false"
 			android:title="About"
-			android:summary="Developer: Maja Szczepańska\naYamsz\nModern Android Dashcam Project" />
+			android:icon="@drawable/ic_person"
+			android:summary="Developer: Maja Szczepańska\nModern Android Dashcam Project" />
 	</PreferenceCategory>
 </PreferenceScreen>
