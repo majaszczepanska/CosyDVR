@@ -84,6 +84,8 @@ public class BackgroundVideoRecorder extends Service implements
 	public boolean AUTOSTART = false;
 	public boolean USEGPS = true;
 
+	public int CAMERA_ID = 0;
+
 	public boolean RECORD_AUDIO = true;
 
 	public String SPEED_UNITS = "kmh";
@@ -470,13 +472,13 @@ public class BackgroundVideoRecorder extends Service implements
 		mSurfaceHolder = surfaceHolder;
 		try {
 			if (camera == null) {
-				camera = Camera.open();
+				camera = Camera.open(CAMERA_ID);
 				camera.setDisplayOrientation(ORIENTATION_ANGLE);
 			}
 			camera.setPreviewDisplay(mSurfaceHolder);
 			camera.startPreview();
 		} catch (Exception e) {
-			Log.e("CosyDVR", "Preview error");
+			Log.e("CosyDVR", "Preview error: " + e.getMessage());
 		}
 		if (AUTOSTART) {
 			StartRecording();
@@ -575,7 +577,6 @@ public class BackgroundVideoRecorder extends Service implements
 		RECORD_AUDIO = sharedPref.getBoolean("record_audio", true);
 		SPEED_UNITS = sharedPref.getString("speed_units", "kmh");
 
-		// (Reszta zostaje jak była, np. video_bitrate czy fps)
 		VIDEO_FRAME_RATE = Integer.parseInt(sharedPref.getString("video_frame_rate",
 				"30"));
 		TIME_LAPSE_FACTOR = (timelapsemode==0) ? 1: Integer.parseInt(sharedPref.getString("time_lapse_factor",
@@ -704,7 +705,7 @@ public class BackgroundVideoRecorder extends Service implements
 			mWakeLock.acquire();
 			try {
 				if (camera == null) {
-					camera = Camera.open();
+					camera = Camera.open(CAMERA_ID);
 					camera.setDisplayOrientation(ORIENTATION_ANGLE);
 				}
 
