@@ -216,7 +216,7 @@ public class CosyDVR extends AppCompatActivity {
            return;
        }
 	   if (mainView != null) {
-		   mainView.setBackgroundColor(android.graphics.Color.BLACK);
+		   mainView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 	   }
 	   Display display = getWindowManager().getDefaultDisplay();
 	   Point size = new Point();
@@ -268,6 +268,11 @@ public class CosyDVR extends AppCompatActivity {
 				mHeight = mainView.getHeight();
 				if (mWidth > 0 && mHeight > 0) {
 					mService.ChangeSurface(mWidth, mHeight);
+
+					mainView.postDelayed(() -> {
+						mainView.setBackgroundColor(android.graphics.Color.BLACK);
+						getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
+					}, 400);
 				}
 			});
 		}
@@ -328,6 +333,10 @@ private final ServiceConnection mConnection = new ServiceConnection() {
 			mHeight = mainView.getHeight();
 			if (mWidth > 0 && mHeight > 0) {
 				mService.ChangeSurface(mWidth, mHeight);
+				mainView.postDelayed(() -> {
+					mainView.setBackgroundColor(android.graphics.Color.BLACK);
+					getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
+				}, 400);
 			}
 		});
 	}
