@@ -39,6 +39,7 @@ import android.os.Bundle;
 
 import java.lang.ref.WeakReference;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.File;
@@ -207,7 +208,7 @@ public class BackgroundVideoRecorder extends Service implements
 			srtBuilder.append(DateFormat.format("yyyy-MM-dd_kk-mm-ss",
 							datetime.getTime()).toString()).append("\n");
 
-                        if (service.USEGPS) {
+                        if (service.USEGPS && service.mLocation == null) {
 			        try {
 			                service.mLocation = service.mLocationManager
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -445,6 +446,7 @@ public class BackgroundVideoRecorder extends Service implements
 				camera = Camera.open(CAMERA_ID);
 				camera.setDisplayOrientation(ORIENTATION_ANGLE);
 			}
+			applyCameraParameters();
 			camera.setPreviewDisplay(mSurfaceHolder);
 			camera.startPreview();
 		} catch (Exception e) {
@@ -575,7 +577,6 @@ public class BackgroundVideoRecorder extends Service implements
 		/* start */
 		OpenUnlockPrepareStart();
 
-		applyCameraParameters();
 		File srtFile = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER //"/CosyDVR/temp/"
 				 + currentfile + SRT_FILE_EXT);
 		File gpxFile = new File(SD_CARD_PATH + BASE_FOLDER + TEMP_FOLDER //"/CosyDVR/temp/" 
@@ -655,6 +656,8 @@ public class BackgroundVideoRecorder extends Service implements
 					camera = Camera.open(CAMERA_ID);
 					camera.setDisplayOrientation(ORIENTATION_ANGLE);
 				}
+
+				applyCameraParameters();
 
 				camera.setErrorCallback((error, camera1) -> {
 					Log.e("CosyDVR", "Camera used by the different process, error: " + error);
@@ -807,6 +810,39 @@ public class BackgroundVideoRecorder extends Service implements
 	public void applyCameraParameters() {
 		if (camera != null) {
 			Parameters parameters = camera.getParameters();
+
+			// Set preview size to match recording aspect ratio
+			List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+			if (previewSizes != null) {
+				float targetRatio = (float) VIDEO_WIDTH / VIDEO_HEIGHT;
+				Camera.Size bestSize = null;
+				float minDiff = Float.MAX_VALUE;
+				for (Camera.Size size : previewSizes) {
+					float ratio = (float) size.width / size.height;
+					if (Math.abs(ratio - targetRatio) < 0.01) {
+						if (bestSize == null || size.width > bestSize.width) {
+							bestSize = size;
+						}
+					}
+					if (Math.abs(ratio - targetRatio) < minDiff) {
+						minDiff = Math.abs(ratio - targetRatio);
+					}
+				}
+				if (bestSize == null) {
+					for (Camera.Size size : previewSizes) {
+						float ratio = (float) size.width / size.height;
+						if (Math.abs(ratio - targetRatio) == minDiff) {
+							if (bestSize == null || size.width > bestSize.width) {
+								bestSize = size;
+							}
+						}
+					}
+				}
+				if (bestSize != null) {
+					parameters.setPreviewSize(bestSize.width, bestSize.height);
+				}
+			}
+
 			if(parameters.getSupportedFocusModes().contains(mFocusModes[focusmode])) {
 				parameters.setFocusMode(mFocusModes[focusmode]);
 			}
@@ -820,7 +856,6 @@ public class BackgroundVideoRecorder extends Service implements
 			}
             if (parameters.isZoomSupported()) {
                 parameters.setZoom(zoomfactor);
-                camera.setParameters(parameters);
             }
 			camera.setParameters(parameters);
 		}
@@ -875,7 +910,6 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void ChangeSurface(int width, int height) {
-		/*
 		int finalWidth = width;
 		int finalHeight = height;
 		if (width > 1 && height > 1) {
@@ -883,21 +917,22 @@ public class BackgroundVideoRecorder extends Service implements
 			float screenRatio = (float) width / height;
 
 			if (videoRatio > screenRatio) {
+				finalWidth = width;
 				finalHeight = (int) (width / videoRatio);
 			} else {
 				finalWidth = (int) (height * videoRatio);
 			}
-		}*/
+		}
 		int overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
 		LayoutParams layoutParams = new WindowManager.LayoutParams(
-				width, height, overlayType,
+				finalWidth, finalHeight, overlayType,
 				LayoutParams.FLAG_NOT_FOCUSABLE | LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
 				PixelFormat.TRANSLUCENT);
 		if (width == 1) {
 			layoutParams.gravity = Gravity.START | Gravity.TOP;
 		} else {
-			layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
+			layoutParams.gravity = Gravity.CENTER;
 		}
 		windowManager.updateViewLayout(surfaceView, layoutParams);
 		if (width > 1) {
@@ -1000,7 +1035,7 @@ public class BackgroundVideoRecorder extends Service implements
 		Notification.Builder builder = new Notification.Builder(this, channelId)
 				.setContentTitle("CosyDVR")
 				.setContentText(contentText)
-				.setSmallIcon(R.drawable.cosydvricon)
+				.setSmallIcon(R.drawable.cosyicon)
 				.setContentIntent(pendingIntent);
 
 		if (isrecording) {
