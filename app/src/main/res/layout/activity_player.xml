@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top|end"
             android:layout_margin="10dp"
-            android:text="Toggle Info"
+            android:text="Change view"
             android:alpha="0.6" />
     </FrameLayout>
 
