@@ -10,14 +10,15 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class CosyDVRPreferenceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
+        setContentView(R.layout.activity_settings);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Settings");
@@ -26,13 +27,13 @@ public class CosyDVRPreferenceActivity extends AppCompatActivity {
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
                     android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                    () -> returnToMainMenu()
+                    this::returnToMainMenu
             );
         }
 
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(android.R.id.content, new MyPreferenceFragment())
+                .replace(R.id.settings_container, new MyPreferenceFragment())
                 .commit();
     }
 
@@ -108,34 +109,6 @@ public class CosyDVRPreferenceActivity extends AppCompatActivity {
             }
         }
 
-        @Override
-        public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
-            super.onViewCreated(view, savedInstanceState);
-            // Dynamic padding for the top HUD area
-            int paddingTop = (int) (65 * getResources().getDisplayMetrics().density);
-            view.setPadding(0, paddingTop, 0, 0);
-            view.setBackgroundColor(android.graphics.Color.parseColor("#121212"));
-            
-            // Removing divider lines between rows for a cleaner look
-            if (view instanceof android.view.ViewGroup) {
-                android.view.ViewGroup vg = (android.view.ViewGroup) view;
-                // Looking for the list (RecyclerView) inside the fragment
-                for (int i = 0; i < vg.getChildCount(); i++) {
-                    android.view.View child = vg.getChildAt(i);
-                    if (child instanceof androidx.recyclerview.widget.RecyclerView) {
-                        ((androidx.recyclerview.widget.RecyclerView) child).addItemDecoration(
-                            new androidx.recyclerview.widget.DividerItemDecoration(requireContext(), 
-                            androidx.recyclerview.widget.DividerItemDecoration.VERTICAL) {
-                                @Override
-                                public void onDraw(android.graphics.Canvas c, androidx.recyclerview.widget.RecyclerView parent, androidx.recyclerview.widget.RecyclerView.State state) {
-                                    // We draw nothing - empty method removes default lines
-                                }
-                            }
-                        );
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -149,9 +122,12 @@ public class CosyDVRPreferenceActivity extends AppCompatActivity {
 
     private void returnToMainMenu() {
         Intent intent = new Intent(this, CosyDVR.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
+
         finish();
+        overridePendingTransition(0, 0);
+
     }
 
     @Override

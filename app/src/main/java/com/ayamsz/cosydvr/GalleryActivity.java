@@ -69,13 +69,13 @@ public class GalleryActivity extends AppCompatActivity {
                     return true;
         });
 
-        loadFolder("/saved/");
+        loadFolder("/temp/");
     }
 
     private void loadFolder(String folderName) {
         currentFolder = folderName;
         
-        // Definiujemy kolory
+        // Colors
         int purple = android.graphics.Color.parseColor("#673AB7");
         int blue = android.graphics.Color.parseColor("#2196F3");
         int gray = android.graphics.Color.parseColor("#455A64");
@@ -203,17 +203,22 @@ public class GalleryActivity extends AppCompatActivity {
             long fileSizeInMB = currentFile.length() / (1024 * 1024);
             tvSize.setText(String.format(Locale.US, "Time: %s  •  Size: %d MB", startTimePart, fileSizeInMB));
 
+
+            android.view.View btnMoreOptions = view.findViewById(R.id.btnMoreOptions);
+            btnMoreOptions.setOnClickListener(v -> {
+                showActionDialog(currentFile);
+            });
+
             return view;
         }
     }
-
     private void showActionDialog(File file) {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         builder.setTitle("Manage Video");
 
         if (Objects.equals(currentFolder, "/temp/")) {
             // if file in /temp - choice (move to saved or delete)
-            String[] options = {"Move to SAVED", "Delete File"};
+            String[] options = {"Move to SAVED (Protected)", "Delete File"};
             builder.setItems(options, (dialog, which) -> {
                 if (which == 0) {
                     moveToSavedWithExtras(file);
@@ -312,9 +317,10 @@ public class GalleryActivity extends AppCompatActivity {
     }
     private void returnToMainMenu() {
         Intent intent = new Intent(this, CosyDVR.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
         finish();
+        overridePendingTransition(0, 0);
     }
 }
 
