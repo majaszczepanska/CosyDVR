@@ -52,5 +52,19 @@
                 android:textSize="14sp"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:text="⋮"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true" />
+
     </LinearLayout>
 </LinearLayout>
