@@ -6,6 +6,12 @@
 
     <style name="Theme.CosyDVR_new" parent="Base.Theme.CosyDVR_new" />
 
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.CosyDVR_new</item>
+    </style>
+
     <style name="Theme.CosyDVR.Settings" parent="Theme.Material3.DayNight">
         <item name="colorPrimary">#2196F3</item>
         <item name="colorSecondary">#2196F3</item>
@@ -14,10 +20,8 @@
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="android:textColorSecondary">#A0A0A0</item>
 
-        <!-- Nowoczesny styl dla okien dialogowych (Pop-upów) -->
         <item name="android:alertDialogTheme">@style/Theme.CosyDVR.Dialog</item>
 
-        <!-- Styl kategorii (Nagłówków) -->
         <item name="preferenceCategoryStyle">@style/MyCategoryStyle</item>
     </style>
 
