@@ -677,7 +677,7 @@ public class BackgroundVideoRecorder extends Service implements
 					Notification warningNotification = new Notification.Builder(BackgroundVideoRecorder.this, channelId1)
 							.setContentTitle("CosyDVR - WARNING")
 							.setContentText("Camera lost! Recording paused.")
-							.setSmallIcon(R.drawable.cosydvricon)
+							.setSmallIcon(R.drawable.cosyicon1)
 							.setContentIntent(pendingIntent1)
 							.setColor(android.graphics.Color.RED)
 							.build();
@@ -1035,7 +1035,7 @@ public class BackgroundVideoRecorder extends Service implements
 		Notification.Builder builder = new Notification.Builder(this, channelId)
 				.setContentTitle("CosyDVR")
 				.setContentText(contentText)
-				.setSmallIcon(R.drawable.cosyicon)
+				.setSmallIcon(R.drawable.cosyicon1)
 				.setContentIntent(pendingIntent);
 
 		if (isrecording) {
