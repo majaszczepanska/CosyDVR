@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="?android:attr/windowBackground"
     android:padding="16dp">
 
     <LinearLayout
@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_title"
-            android:textColor="#FFFFFF"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_start_stop_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_save_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
@@ -48,7 +48,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_gallery_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_settings_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
@@ -64,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_exit_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="24dp" />
 
@@ -81,7 +81,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_speed_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="4dp" />
 
@@ -89,7 +89,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_gps_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="4dp" />
 
@@ -97,7 +97,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_rec_time_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="24dp" />
 
@@ -114,7 +114,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/manual_storage_desc"
-            android:textColor="#E0E0E0"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp"
             android:layout_marginBottom="16dp" />
 

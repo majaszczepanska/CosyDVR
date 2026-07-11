@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CosyDVR_new" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Let the base theme handle it or add v31 specific features here -->
+    </style>
+
+    <style name="Theme.CosyDVR.Settings" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">#2196F3</item>
+        <item name="colorSecondary">#2196F3</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+
+        <item name="android:alertDialogTheme">@style/Theme.CosyDVR.Dialog</item>
+        <item name="preferenceCategoryStyle">@style/MyCategoryStyle</item>
+    </style>
+</resources>
