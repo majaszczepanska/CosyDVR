@@ -19,10 +19,7 @@ public class CosyDVRPreferenceActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_settings);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Settings");
-        }
+        findViewById(R.id.btnBackSettings).setOnClickListener(v -> returnToMainMenu());
 
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(

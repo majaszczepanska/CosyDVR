@@ -1,7 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.CosyDVR_new" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+        <item name="android:statusBarColor">?android:attr/windowBackground</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">?android:attr/isLightTheme</item>
     </style>
 
     <style name="Theme.CosyDVR_new" parent="Base.Theme.CosyDVR_new" />
@@ -12,10 +13,12 @@
         <item name="postSplashScreenTheme">@style/Theme.CosyDVR_new</item>
     </style>
 
-    <style name="Theme.CosyDVR.Settings" parent="Theme.Material3.DayNight">
+    <style name="Theme.CosyDVR.Settings" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">#2196F3</item>
         <item name="colorSecondary">#2196F3</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="android:statusBarColor">?android:attr/windowBackground</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">?android:attr/isLightTheme</item>
 
         <item name="android:alertDialogTheme">@style/Theme.CosyDVR.Dialog</item>
         <item name="preferenceCategoryStyle">@style/MyCategoryStyle</item>
