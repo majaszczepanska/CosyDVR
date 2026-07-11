@@ -26,7 +26,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.media.AudioManager;
 import android.text.format.DateFormat;
 import android.os.Build;
 import android.os.Handler;
@@ -128,23 +127,6 @@ public class BackgroundVideoRecorder extends Service implements
 	private LocationManager mLocationManager = null;
 	private Location mLocation = null;
 	private long mPrevTim = 0;
-
-	private AudioManager mAudioManager = null;
-	private android.media.AudioFocusRequest mFocusRequest = null;
-
-	private final AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = focusChange -> {
-		switch (focusChange) {
-			case AudioManager.AUDIOFOCUS_LOSS:
-			case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-				// If we lose focus (e.g. someone calls), we can optionally mute the recording
-				// or simply log this fact. Most dashcams continue recording without sound.
-				Log.d("CosyDVR", "Audio Focus lost");
-				break;
-			case AudioManager.AUDIOFOCUS_GAIN:
-				Log.d("CosyDVR", "Audio Focus gained");
-				break;
-		}
-	};
 
 	// private List<String> mFocusModes;
 	private final String[] mFocusModes = { Parameters.FOCUS_MODE_INFINITY,
@@ -366,8 +348,6 @@ public class BackgroundVideoRecorder extends Service implements
 
 		mHandler = new HandlerExtension(this);
 
-		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
 		hudHandler.post(hudRunnable);
 		startGps();
 		createButtonOverlay();
@@ -508,7 +488,6 @@ public class BackgroundVideoRecorder extends Service implements
 			isrecording = false;
 			updateNotification();
 		}
-		abandonAudioFocus();
 	}
 
 	public void UpdateLayoutInterface() {
@@ -525,7 +504,6 @@ public class BackgroundVideoRecorder extends Service implements
 	}
 
 	public void StartRecording() {
-		requestAudioFocus();
 		/* Rereading preferences */
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -871,33 +849,6 @@ public class BackgroundVideoRecorder extends Service implements
 			}
 		}
 
-	}
-
-
-
-	@SuppressLint("SuspiciousIndentation")
-    private void requestAudioFocus() {
-		if (mAudioManager == null) return;
-
-        mFocusRequest = new android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                .setAudioAttributes(new android.media.AudioAttributes.Builder()
-                        .setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
-                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build())
-                .setAcceptsDelayedFocusGain(true)
-                .setOnAudioFocusChangeListener(mOnAudioFocusChangeListener)
-                .build();
-        mAudioManager.requestAudioFocus(mFocusRequest);
-    }
-
-	private void abandonAudioFocus() {
-		if (mAudioManager == null) return;
-
-		if (mFocusRequest != null) {
-			mAudioManager.abandonAudioFocusRequest(mFocusRequest);
-		} else {
-			mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
-		}
 	}
 
 	public void toggleSave() {
