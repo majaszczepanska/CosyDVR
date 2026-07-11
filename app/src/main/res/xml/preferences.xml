@@ -107,22 +107,16 @@
 	<PreferenceCategory
 		android:title="Help &amp; Info"
 		android:icon="@drawable/ic_info">
-		<PreferenceScreen
+		<Preference
 			android:key="screen_instructions"
-			android:title="Manual / Instructions"
+			android:title="@string/manual_title_pref"
 			android:icon="@drawable/ic_help"
-			android:summary="Click to view button functions">
-
-			<Preference
-				android:selectable="false"
-				android:title="SAVE Button"
-				android:summary="Protects the current 10-minute fragment from being overwritten." />
-
-			<Preference
-				android:selectable="false"
-				android:title="START / STOP Button"
-				android:summary="Starts or stops the background video recording." />
-		</PreferenceScreen>
+			android:summary="@string/manual_summary_pref">
+			<intent
+				android:action="android.intent.action.MAIN"
+				android:targetPackage="com.ayamsz.cosydvr"
+				android:targetClass="com.ayamsz.cosydvr.ManualActivity" />
+		</Preference>
 
 		<Preference
 			android:key="instruction_about"

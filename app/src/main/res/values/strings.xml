@@ -12,4 +12,20 @@
     <string name="longclick">LongClick</string>
     <string name="preferences">preferences and help</string>
     <string name="timelapse">timelapse mode toggle</string>
+
+    <string name="manual_title">CosyDVR User Manual</string>
+    <string name="manual_title_pref">Manual / Instructions</string>
+    <string name="manual_summary_pref">Click to view button functions and features</string>
+    <string name="manual_buttons_header">Control Buttons:</string>
+    <string name="manual_start_stop_desc">• START / STOP (Green/Red): Starts or stops video recording. Recording runs in the background even if the screen is off or you are using another app (e.g., navigation).</string>
+    <string name="manual_save_desc">• SAVE (Purple/Orange): Protects the current video fragment from deletion. The file will be moved from the temporary folder to the \'Saved\' folder. Use this button to keep important road events.</string>
+    <string name="manual_gallery_desc">• GALLERY (Blue): Allows quick preview and management of recorded videos.</string>
+    <string name="manual_settings_desc">• SETTINGS (Gray): Opens the settings menu to adjust resolution, quality, audio, and storage limits.</string>
+    <string name="manual_exit_desc">• EXIT (Red): Closes the application and stops all background processes.</string>
+    <string name="manual_hud_header">Display (On Screen):</string>
+    <string name="manual_speed_desc">• Speed: Displayed in the top-right corner of the screen (requires GPS).</string>
+    <string name="manual_gps_desc">• GPS Status: Indicates the quality of the connection with satellites. Green color means precise location.</string>
+    <string name="manual_rec_time_desc">• Recording Time: Shows the current duration of the active video file.</string>
+    <string name="manual_storage_header">Automatic Storage Management:</string>
+    <string name="manual_storage_desc">The app automatically deletes the oldest files from the temporary folder after a set period (default 7 days) or when space limits are reached to make room for new recordings. Files in the \'Saved\' folder are never automatically deleted.</string>
 </resources>

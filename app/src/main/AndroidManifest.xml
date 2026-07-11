@@ -63,6 +63,11 @@
             android:name=".GalleryActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ManualActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CosyDVR.Settings" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
