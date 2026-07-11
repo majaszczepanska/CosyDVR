@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="dialog_bg">#1E1E1E</color>
+    <color name="date_header_text">#DEFF9A</color>
+    <color name="date_header_bg">#1A1A1A</color>
+    <color name="gallery_button_unselected">#455A64</color>
 </resources>

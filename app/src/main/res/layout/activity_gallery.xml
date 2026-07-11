@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#000000"
+    android:background="?android:attr/windowBackground"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -20,7 +20,7 @@
             android:layout_marginEnd="8dp"
             android:src="@drawable/ic_back_arrow"
             android:background="@drawable/rounded_button"
-            android:backgroundTint="#263238"
+            android:backgroundTint="@color/gallery_button_unselected"
             android:contentDescription="Back"
             android:padding="12dp"
             android:scaleType="fitCenter" />
@@ -54,7 +54,7 @@
         android:id="@+id/videoListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="#333333"
+        android:divider="?android:attr/dividerVertical"
         android:dividerHeight="1dp" />
 
 </LinearLayout>

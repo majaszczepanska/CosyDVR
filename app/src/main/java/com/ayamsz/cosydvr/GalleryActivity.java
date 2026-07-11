@@ -78,7 +78,7 @@ public class GalleryActivity extends AppCompatActivity {
         // Colors
         int purple = android.graphics.Color.parseColor("#673AB7");
         int blue = android.graphics.Color.parseColor("#2196F3");
-        int gray = android.graphics.Color.parseColor("#455A64");
+        int gray = androidx.core.content.ContextCompat.getColor(this, R.color.gallery_button_unselected);
 
         if (Objects.equals(folderName, "/saved/")) {
             btnSaved.setBackgroundTintList(android.content.res.ColorStateList.valueOf(purple));
